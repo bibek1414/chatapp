@@ -1,40 +1,84 @@
+{% load tailwind_tags %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Chat App{% endblock %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    {% tailwind_css %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="{% url 'index' %}">Chat App</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <nav class="bg-indigo-600 text-white shadow-md">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex justify-between items-center">
+                <a href="{% url 'index' %}" class="text-xl font-bold hover:text-indigo-200 transition duration-200">Chat App</a>
+                <button id="menuToggle" class="md:hidden focus:outline-none">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div id="navbarMenu" class="hidden md:block">
+                    <ul class="flex space-x-6">
+                        {% if user.is_authenticated %}
+                            <li>
+                                <a href="{% url 'index' %}" class="hover:text-indigo-200 transition duration-200">
+                                    <i class="fas fa-comment-dots mr-1"></i> Chats
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{% url 'contacts' %}" class="hover:text-indigo-200 transition duration-200">
+                                    <i class="fas fa-address-book mr-1"></i> Contacts
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{% url 'logout' %}" class="hover:text-indigo-200 transition duration-200">
+                                    <i class="fas fa-sign-out-alt mr-1"></i> Logout
+                                </a>
+                            </li>
+                        {% else %}
+                            <li>
+                                <a href="{% url 'login' %}" class="hover:text-indigo-200 transition duration-200">
+                                    <i class="fas fa-sign-in-alt mr-1"></i> Login
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{% url 'register' %}" class="hover:text-indigo-200 transition duration-200">
+                                    <i class="fas fa-user-plus mr-1"></i> Register
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+            <!-- Mobile menu, hidden by default -->
+            <div id="mobileMenu" class="md:hidden hidden mt-3 pb-2">
+                <ul class="space-y-3">
                     {% if user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'index' %}">Chats</a>
+                        <li>
+                            <a href="{% url 'index' %}" class="block hover:text-indigo-200 transition duration-200">
+                                <i class="fas fa-comment-dots mr-1"></i> Chats
+                            </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'contacts' %}">Contacts</a>
+                        <li>
+                            <a href="{% url 'contacts' %}" class="block hover:text-indigo-200 transition duration-200">
+                                <i class="fas fa-address-book mr-1"></i> Contacts
+                            </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                        <li>
+                            <a href="{% url 'logout' %}" class="block hover:text-indigo-200 transition duration-200">
+                                <i class="fas fa-sign-out-alt mr-1"></i> Logout
+                            </a>
                         </li>
                     {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}">Login</a>
+                        <li>
+                            <a href="{% url 'login' %}" class="block hover:text-indigo-200 transition duration-200">
+                                <i class="fas fa-sign-in-alt mr-1"></i> Login
+                            </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'register' %}">Register</a>
+                        <li>
+                            <a href="{% url 'register' %}" class="block hover:text-indigo-200 transition duration-200">
+                                <i class="fas fa-user-plus mr-1"></i> Register
+                            </a>
                         </li>
                     {% endif %}
                 </ul>
@@ -42,11 +86,17 @@
         </div>
     </nav>
 
-    <div class="container my-4">
+    <main class="container mx-auto px-4 py-6 flex-grow">
         {% block content %}{% endblock %}
-    </div>
+    </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Mobile menu toggle
+        document.getElementById('menuToggle').addEventListener('click', function() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu.classList.toggle('hidden');
+        });
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

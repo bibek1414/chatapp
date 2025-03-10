@@ -3,101 +3,143 @@
 {% block title %}Contacts | Chat App{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-8 mx-auto">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h3>Your Contacts</h3>
-            </div>
-            <div class="card-body">
-                {% if contacts %}
-                    <ul class="list-group">
-                        {% for contact in contacts %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h5 class="mb-1">{{ contact.contact.username }}</h5>
-                                    <small class="text-muted">{{ contact.contact.email }}</small>
-                                </div>
-                                <div>
-                                    <a href="{% url 'start_chat' contact.contact.id %}" class="btn btn-primary btn-sm">
-                                        <i class="fas fa-comment"></i> Chat
-                                    </a>
-                                    <a href="{% url 'remove_contact' contact.id %}" class="btn btn-danger btn-sm">
-                                        <i class="fas fa-trash"></i>
-                                    </a>
-                                </div>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <p class="text-center">You don't have any contacts yet. Search for users to add contacts.</p>
-                {% endif %}
-            </div>
+<div class="max-w-4xl mx-auto">
+  <div class="grid md:grid-cols-2 gap-6">
+    <div class="col-span-2 md:col-span-1">
+      <!-- Your Contacts -->
+      <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+        <div class="bg-indigo-50 px-4 py-3 border-b border-gray-100">
+          <h2 class="text-lg font-semibold text-gray-800">
+            <i class="fas fa-address-book mr-2 text-indigo-500"></i>Your Contacts
+          </h2>
         </div>
-        
-        <div class="card mb-4">
-            <div class="card-header">
-                <h3>Find Contacts</h3>
+        <div class="p-4">
+          {% if contacts %}
+            <div class="divide-y divide-gray-100">
+              {% for contact in contacts %}
+                <div class="py-3 flex items-center justify-between">
+                  <div>
+                    <h3 class="text-md font-medium text-gray-800">{{ contact.contact.username }}</h3>
+                    <p class="text-sm text-gray-500">{{ contact.contact.email }}</p>
+                  </div>
+                  <div class="flex space-x-2">
+                    <a href="{% url 'start_chat' contact.contact.id %}" class="p-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition">
+                      <i class="fas fa-comment"></i>
+                    </a>
+                    <a href="{% url 'remove_contact' contact.id %}" class="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition">
+                      <i class="fas fa-trash"></i>
+                    </a>
+                  </div>
+                </div>
+              {% endfor %}
             </div>
-            <div class="card-body">
-                <form method="get" class="mb-3">
-                    <div class="input-group">
-                        {{ form.search }}
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-search"></i> Search
-                        </button>
-                    </div>
-                </form>
-                
-                {% if search_results %}
-                    <h4>Search Results</h4>
-                    <ul class="list-group">
-                        {% for user in search_results %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h5 class="mb-1">{{ user.username }}</h5>
-                                    <small class="text-muted">{{ user.email }}</small>
-                                </div>
-                                <a href="{% url 'add_contact' user.id %}" class="btn btn-success btn-sm">
-                                    <i class="fas fa-user-plus"></i> Add
-                                </a>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                {% endif %}
+          {% else %}
+            <div class="text-center py-8">
+              <div class="inline-flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 mb-3">
+                <i class="fas fa-user-friends text-indigo-500"></i>
+              </div>
+              <p class="text-gray-500">You don't have any contacts yet.</p>
+              <p class="text-gray-500">Search for users below to add contacts.</p>
             </div>
+          {% endif %}
         </div>
-        
-        {% if contacts %}
-            <div class="card">
-                <div class="card-header">
-                    <h3>Create Group Chat</h3>
-                </div>
-                <div class="card-body">
-                    <form method="post" action="{% url 'create_group' %}">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label for="group-name" class="form-label">Group Name</label>
-                            <input type="text" class="form-control" id="group-name" name="name" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Select Contacts</label>
-                            <div class="list-group">
-                                {% for contact in contacts %}
-                                    <label class="list-group-item">
-                                        <input class="form-check-input me-1" type="checkbox" name="contacts" value="{{ contact.id }}">
-                                        {{ contact.contact.username }}
-                                    </label>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-users"></i> Create Group
-                        </button>
-                    </form>
-                </div>
+      </div>
+
+      <!-- Find Contacts -->
+      <div class="bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="bg-indigo-50 px-4 py-3 border-b border-gray-100">
+          <h2 class="text-lg font-semibold text-gray-800">
+            <i class="fas fa-search mr-2 text-indigo-500"></i>Find Contacts
+          </h2>
+        </div>
+        <div class="p-4">
+          <form method="get" class="mb-4">
+            <div class="flex">
+              <div class="relative flex-grow">
+                {{ form.search|safe }}
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
+                  <i class="fas fa-search"></i>
+                </span>
+              </div>
+              <button type="submit" class="ml-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                Search
+              </button>
             </div>
-        {% endif %}
+          </form>
+          
+          {% if search_results %}
+            <h3 class="text-md font-medium text-gray-700 mb-3">Search Results</h3>
+            <div class="divide-y divide-gray-100">
+              {% for user in search_results %}
+                <div class="py-3 flex items-center justify-between">
+                  <div>
+                    <h3 class="text-md font-medium text-gray-800">{{ user.username }}</h3>
+                    <p class="text-sm text-gray-500">{{ user.email }}</p>
+                  </div>
+                  <a href="{% url 'add_contact' user.id %}" class="px-3 py-1 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition flex items-center">
+                    <i class="fas fa-user-plus mr-1"></i> Add
+                  </a>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
     </div>
+    
+    <!-- Create Group Chat -->
+    <div class="col-span-2 md:col-span-1">
+      {% if contacts %}
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+          <div class="bg-indigo-50 px-4 py-3 border-b border-gray-100">
+            <h2 class="text-lg font-semibold text-gray-800">
+              <i class="fas fa-users mr-2 text-indigo-500"></i>Create Group Chat
+            </h2>
+          </div>
+          <div class="p-4">
+            <form method="post" action="{% url 'create_group' %}">
+              {% csrf_token %}
+              <div class="mb-4">
+                <label for="group-name" class="block text-sm font-medium text-gray-700 mb-1">Group Name</label>
+                <input type="text" id="group-name" name="name" 
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" 
+                       required>
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Select Contacts</label>
+                <div class="space-y-2 max-h-60 overflow-y-auto pr-2">
+                  {% for contact in contacts %}
+                    <label class="flex items-center p-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition cursor-pointer">
+                      <input type="checkbox" name="contacts" value="{{ contact.id }}" 
+                             class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 rounded">
+                      <span class="ml-3 block">
+                        <span class="text-sm font-medium text-gray-700">{{ contact.contact.username }}</span>
+                      </span>
+                    </label>
+                  {% endfor %}
+                </div>
+              </div>
+              
+              <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg transition shadow-sm flex items-center justify-center">
+                <i class="fas fa-users mr-2"></i> Create Group
+              </button>
+            </form>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
 </div>
+
+<script>
+  // Add Tailwind classes to the search input
+  document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('id_search');
+    if (searchInput) {
+      searchInput.className = 'w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500';
+      searchInput.placeholder = 'Search by username or email...';
+    }
+  });
+</script>
 {% endblock %}

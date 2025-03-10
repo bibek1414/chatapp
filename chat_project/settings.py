@@ -19,8 +19,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'channels',
     'chat',
-]
+    'tailwind',
+    'theme',
+    'widget_tweaks',
 
+]
+TAILWIND_APP_NAME = 'theme' 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
