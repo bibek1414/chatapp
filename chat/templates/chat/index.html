@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Chats | Chat App{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Your Conversations</h2>
+            <a href="{% url 'contacts' %}" class="btn btn-success">
+                <i class="fas fa-plus"></i> New Chat
+            </a>
+        </div>
+
+        <div class="list-group chat-list">
+            {% if room_data %}
+                {% for room in room_data %}
+                    <a href="{% url 'room' room.id %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1">{{ room.name }}</h5>
+                            {% if room.latest_message %}
+                                <p class="mb-1 text-muted">
+                                    {% if room.latest_message.sender == request.user %}
+                                        <small>You: </small>
+                                    {% else %}
+                                        <small>{{ room.latest_message.sender.username }}: </small>
+                                    {% endif %}
+                                    {% if room.latest_message.message_type == 'text' %}
+                                        {{ room.latest_message.content|truncatechars:50 }}
+                                    {% elif room.latest_message.message_type == 'audio' %}
+                                        <i class="fas fa-microphone"></i> Audio message
+                                    {% else %}
+                                        <i class="fas fa-file"></i> File
+                                    {% endif %}
+                                </p>
+                                <small class="text-muted">{{ room.latest_message.timestamp|date:"M d, Y H:i" }}</small>
+                            {% else %}
+                                <p class="mb-1 text-muted">No messages yet</p>
+                            {% endif %}
+                        </div>
+                        {% if room.unread_count > 0 %}
+                            <span class="badge bg-primary rounded-pill">{{ room.unread_count }}</span>
+                        {% endif %}
+                    </a>
+                {% endfor %}
+            {% else %}
+                <div class="text-center p-4">
+                    <p>No conversations yet. Start a new chat from your contacts.</p>
+                    <a href="{% url 'contacts' %}" class="btn btn-primary">
+                        Go to Contacts
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ room_name }} | Chat App{% endblock %}
+
+{% block extra_css %}
+<style>
+    .message-container {
+        height: 60vh;
+        overflow-y: auto;
+        padding: 1rem;
+        background-color: #f8f9fa;
+        border-radius: 0.25rem;
+    }
+    .message {
+        max-width: 75%;
+        padding: 0.5rem 1rem;
+        border-radius: 1rem;
+        margin-bottom: 0.5rem;
+        word-wrap: break-word;
+    }
+    .message.sent {
+        background-color: #dcf8c6;
+        margin-left: auto;
+        border-bottom-right-radius: 0.3rem;
+    }
+    .message.received {
+        background-color: #ffffff;
+        margin-right: auto;
+        border-bottom-left-radius: 0.3rem;
+    }
+    .message-info {
+        font-size: 0.75rem;
+        color: #6c757d;
+        display: flex;
+        justify-content: space-between;
+    }
+    .audio-controls {
+        display: flex;
+        align-items: center;
+    }
+    .recording-indicator {
+        color: red;
+        animation: blink 1s infinite;
+    }
+    @keyframes blink {
+        0% { opacity: 1; }
+        50% { opacity: 0; }
+        100% { opacity: 1; }
+    }
+    #message-input {
+        border-radius: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2>{{ room_name }}</h2>
+            <a href="{% url 'index' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+        
+        <div class="message-container" id="message-container">
+            {% for message in messages %}
+                <div class="message {% if message.sender == request.user %}sent{% else %}received{% endif %}">
+                    {% if message.message_type == 'text' %}
+                        <div class="message-content">{{ message.content }}</div>
+                    {% elif message.message_type == 'audio' %}
+                        <div class="message-content">
+                            <audio src="{{ message.file.url }}" controls></audio>
+                        </div>
+                    {% elif message.message_type == 'file' %}
+                        <div class="message-content">
+                            <a href="{{ message.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-download"></i> Download File
+                            </a>
+                        </div>
+                    {% endif %}
+                    <div class="message-info">
+                        <span>{{ message.sender.username }}</span>
+                        <span>{{ message.timestamp|date:"H:i" }}</span>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <div class="input-group mt-3">
+            <input type="text" id="message-input" class="form-control" placeholder="Type a message...">
+            <button id="audio-record-btn" class="btn btn-outline-secondary" type="button">
+                <i class="fas fa-microphone"></i>
+            </button>
+            <button id="send-btn" class="btn btn-primary" type="button">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+        
+        <div id="audio-controls" class="mt-2 d-none">
+            <div class="audio-controls">
+                <span id="recording-indicator" class="recording-indicator me-2">
+                    <i class="fas fa-circle"></i> Recording...
+                </span>
+                <span id="recording-time">00:00</span>
+                <button id="stop-recording-btn" class="btn btn-sm btn-danger ms-2">
+                    <i class="fas fa-stop"></i> Stop
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    let roomId = "{{ room.id }}";
+    const currentUserId = {{ request.user.id }};
+    const currentUsername = "{{ request.user.username }}";
+    
+    // WebSocket connection
+    const chatSocket = new WebSocket(
+        'ws://' + window.location.host + '/ws/chat/' + roomId + '/'
+    );
+    
+    // Messages container
+    const messageContainer = document.getElementById('message-container');
+    const messageInput = document.getElementById('message-input');
+    const sendButton = document.getElementById('send-btn');
+    
+    // Scroll to bottom of message container
+    function scrollToBottom() {
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+    }
+    
+    // Scroll to bottom initially
+    scrollToBottom();
+    
+    // Add a message to the UI
+    function addMessage(message, messageType, username, userId, timestamp, fileUrl = null) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message ' + (userId == currentUserId ? 'sent' : 'received');
+        
+        const messageContent = document.createElement('div');
+        messageContent.className = 'message-content';
+        
+        if (messageType === 'text') {
+            messageContent.textContent = message;
+        } else if (messageType === 'audio') {
+            const audio = document.createElement('audio');
+            audio.src = fileUrl;
+            audio.controls = true;
+            messageContent.appendChild(audio);
+        } else if (messageType === 'file') {
+            const link = document.createElement('a');
+            link.href = fileUrl;
+            link.target = '_blank';
+            link.className = 'btn btn-sm btn-outline-primary';
+            link.innerHTML = '<i class="fas fa-download"></i> Download File';
+            messageContent.appendChild(link);
+        }
+        
+        const messageInfo = document.createElement('div');
+        messageInfo.className = 'message-info';
+        
+        const usernameSpan = document.createElement('span');
+        usernameSpan.textContent = username;
+        
+        const timeSpan = document.createElement('span');
+        const date = new Date(timestamp);
+        timeSpan.textContent = date.getHours().toString().padStart(2, '0') + ':' + 
+                              date.getMinutes().toString().padStart(2, '0');
+        
+        messageInfo.appendChild(usernameSpan);
+        messageInfo.appendChild(timeSpan);
+        
+        messageDiv.appendChild(messageContent);
+        messageDiv.appendChild(messageInfo);
+        
+        messageContainer.appendChild(messageDiv);
+        scrollToBottom();
+    }
+    
+    // Send message function
+    function sendMessage() {
+        const message = messageInput.value.trim();
+        if (message) {
+            chatSocket.send(JSON.stringify({
+                'message': message,
+                'type': 'text'
+            }));
+            messageInput.value = '';
+        }
+    }
+    
+    // Event listeners
+    messageInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+    
+    sendButton.addEventListener('click', sendMessage);
+    
+    // WebSocket event listeners
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        addMessage(
+            data.message, 
+            data.message_type, 
+            data.username, 
+            data.user_id, 
+            data.timestamp,
+            data.file_url
+        );
+    };
+    
+    chatSocket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly');
+    };
+</script>
+
+<!-- Audio recording functionality -->
+<script src="{% static 'js/audio.js' %}"></script>
+{% endblock %}
+{% endblock %}

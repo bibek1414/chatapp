@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}Contacts | Chat App{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Your Contacts</h3>
+            </div>
+            <div class="card-body">
+                {% if contacts %}
+                    <ul class="list-group">
+                        {% for contact in contacts %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-1">{{ contact.contact.username }}</h5>
+                                    <small class="text-muted">{{ contact.contact.email }}</small>
+                                </div>
+                                <div>
+                                    <a href="{% url 'start_chat' contact.contact.id %}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-comment"></i> Chat
+                                    </a>
+                                    <a href="{% url 'remove_contact' contact.id %}" class="btn btn-danger btn-sm">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-center">You don't have any contacts yet. Search for users to add contacts.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Find Contacts</h3>
+            </div>
+            <div class="card-body">
+                <form method="get" class="mb-3">
+                    <div class="input-group">
+                        {{ form.search }}
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                </form>
+                
+                {% if search_results %}
+                    <h4>Search Results</h4>
+                    <ul class="list-group">
+                        {% for user in search_results %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-1">{{ user.username }}</h5>
+                                    <small class="text-muted">{{ user.email }}</small>
+                                </div>
+                                <a href="{% url 'add_contact' user.id %}" class="btn btn-success btn-sm">
+                                    <i class="fas fa-user-plus"></i> Add
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if contacts %}
+            <div class="card">
+                <div class="card-header">
+                    <h3>Create Group Chat</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'create_group' %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="group-name" class="form-label">Group Name</label>
+                            <input type="text" class="form-control" id="group-name" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Select Contacts</label>
+                            <div class="list-group">
+                                {% for contact in contacts %}
+                                    <label class="list-group-item">
+                                        <input class="form-check-input me-1" type="checkbox" name="contacts" value="{{ contact.id }}">
+                                        {{ contact.contact.username }}
+                                    </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-users"></i> Create Group
+                        </button>
+                    </form>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
