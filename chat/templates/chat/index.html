@@ -1,94 +1,176 @@
 {% extends 'base.html' %}
 {% block title %}Chats | Chat App{% endblock %}
+
+{% block extra_css %}
+<style>
+  .chat-item {
+    transition: all 0.2s ease-in-out;
+  }
+  .chat-item:hover,
+  .chat-item.active {
+    transform: translateY(-2px);
+    background-color: rgba(199, 210, 254, 0.5); /* Adjust the color as needed */
+  }
+  .unread-badge {
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4);
+    }
+    70% {
+      box-shadow: 0 0 0 10px rgba(79, 70, 229, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(79, 70, 229, 0);
+    }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="max-w-4xl mx-auto">
-  <div class="flex justify-between items-center mb-6">
-    <h1 class="text-2xl font-bold text-gray-800">
-      <i class="fas fa-comment-dots mr-2"></i>Your Conversations
-    </h1>
-    <a href="{% url 'contacts' %}" class="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg transition shadow-md flex items-center">
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900 flex items-center">
+        <span class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full p-2 mr-3 text-white shadow-lg">
+          <i class="fas fa-comment-dots"></i>
+        </span>
+        Your Conversations
+      </h1>
+      <p class="text-gray-500 mt-2">Stay connected with your friends and groups</p>
+    </div>
+    <a href="{% url 'contacts' %}" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-3 px-6 rounded-lg transition shadow-md flex items-center transform hover:scale-105 duration-200">
       <i class="fas fa-plus mr-2"></i> New Chat
     </a>
   </div>
 
-  <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+  <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
     {% if room_data %}
-      <div class="divide-y divide-gray-100">
+      <div class="grid divide-y divide-gray-100">
         {% for room in room_data %}
-          <a href="{% url 'room' room.id %}" class="block hover:bg-gray-50 transition">
-            <div class="p-4 flex justify-between items-center space-x-4">
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center">
-                  {% if room.is_group %}
-                    <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                      <i class="fas fa-users text-indigo-500 text-lg"></i>
-                    </div>
-                  {% else %}
-                    <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                      {% for profile in room.participant_profiles %}
-                        {% if profile.profile_picture %}
-                          <img src="{{ profile.profile_picture.url }}" alt="{{ profile.username }}" class="w-12 h-12 rounded-full">
-                        {% else %}
-                          <i class="fas fa-user text-gray-500"></i>
-                        {% endif %}
-                      {% endfor %}
-                    </div>
-                  {% endif %}
-                  <div class="flex-1 min-w-0">
-                    <h3 class="text-lg font-semibold text-gray-800 truncate">{{ room.name }}</h3>
-                    {% if room.latest_message %}
-                      <p class="text-sm text-gray-500 truncate mt-1">
-                        {% if room.latest_message.sender == request.user %}
-                          <span class="font-medium">You: </span>
-                        {% else %}
-                          <span class="font-medium">{{ room.latest_message.sender.username }}: </span>
-                        {% endif %}
-                        {% if room.latest_message.message_type == 'text' %}
-                          {{ room.latest_message.content|truncatechars:40 }}
-                        {% elif room.latest_message.message_type == 'audio' %}
-                          <i class="fas fa-microphone text-gray-400"></i> Audio message
-                        {% else %}
-                          <i class="fas fa-file text-gray-400"></i> File
-                        {% endif %}
-                      </p>
-                      <p class="text-xs text-gray-400 mt-1">{{ room.latest_message.timestamp|date:"M d, Y H:i" }}</p>
-                    {% else %}
-                      <p class="text-sm text-gray-500 mt-1">No messages yet</p>
+          <a href="{% url 'room' room.id %}" class="block chat-item hover:bg-indigo-50 transition">
+            <div class="p-5 flex justify-between items-center gap-4">
+              <div class="flex-1 min-w-0 flex items-start">
+                {% if room.is_group %}
+                  <div class="w-14 h-14 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-xl flex items-center justify-center mr-4 flex-shrink-0 shadow-md">
+                    <i class="fas fa-users text-white text-xl"></i>
+                  </div>
+                {% else %}
+                  <div class="relative w-14 h-14 bg-gray-200 rounded-xl flex items-center justify-center mr-4 flex-shrink-0 shadow-sm overflow-hidden">
+                    {% for profile in room.participant_profiles %}
+                      {% if profile.profile_picture %}
+                        <img src="{{ profile.profile_picture.url }}" alt="{{ profile.username }}" class="w-14 h-14 object-cover">
+                      {% else %}
+                        <div class="bg-gradient-to-br from-gray-400 to-gray-600 w-full h-full flex items-center justify-center">
+                          <i class="fas fa-user text-white text-xl"></i>
+                        </div>
+                      {% endif %}
+                    {% endfor %}
+                    {% if room.online_participants > 0 %}
+                      <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
                     {% endif %}
                   </div>
+                {% endif %}
+                
+                <div class="flex-1 min-w-0">
+                  <div class="flex justify-between items-start">
+                    <h3 class="text-lg font-bold text-gray-900 truncate">{{ room.name }}</h3>
+                    <p class="text-xs text-gray-400 ml-2 flex-shrink-0">
+                      {% if room.latest_message %}
+                        {{ room.latest_message.timestamp|date:"M d, Y" }}
+                      {% endif %}
+                    </p>
+                  </div>
+                  
+                  {% if room.latest_message %}
+                    <p class="text-sm text-gray-600 truncate mt-1">
+                      {% if room.latest_message.sender == request.user %}
+                        <span class="font-semibold text-indigo-600">You: </span>
+                      {% else %}
+                        <span class="font-semibold text-gray-800">{{ room.latest_message.sender.username }}: </span>
+                      {% endif %}
+                      
+                      {% if room.latest_message.message_type == 'text' %}
+                        {{ room.latest_message.content|truncatechars:40 }}
+                      {% elif room.latest_message.message_type == 'audio' %}
+                        <i class="fas fa-microphone text-indigo-500"></i> Voice message
+                      {% else %}
+                        <i class="fas fa-file text-indigo-500"></i> Attachment
+                      {% endif %}
+                    </p>
+                    <p class="text-xs text-gray-400 mt-1">{{ room.latest_message.timestamp|date:"H:i" }}</p>
+                  {% else %}
+                    <p class="text-sm text-gray-500 mt-1 italic">Start a conversation</p>
+                  {% endif %}
                 </div>
               </div>
-              <div class="ml-4 flex-shrink-0">
+              
+              <div class="flex items-center gap-4">
                 {% if room.unread_count > 0 %}
-                  <span class="inline-flex items-center justify-center h-6 w-6 rounded-full bg-indigo-600 text-white text-xs font-medium">
+                  <span class="inline-flex items-center justify-center h-6 w-6 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs font-medium unread-badge">
                     {{ room.unread_count }}
                   </span>
                 {% endif %}
-              </div>
-              <div class="ml-4 flex-shrink-0">
-                <form method="post" action="{% url 'delete_chat' room.id %}" onsubmit="return confirm('Are you sure you want to delete this chat?');">
-                  {% csrf_token %}
-                  <button type="submit" class="text-red-600 hover:text-red-700 font-medium transition">
-                    <i class="fas fa-trash-alt mr-2"></i>Delete
+                
+                <div class="relative group">
+                  <button class="text-gray-400 hover:text-gray-700 transition p-2 rounded-full hover:bg-gray-100">
+                    <i class="fas fa-ellipsis-v"></i>
                   </button>
-                </form>
+                  <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-10 hidden group-hover:block">
+                    <a href="{% url 'room' room.id %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50">
+                      <i class="fas fa-comment-dots mr-2 text-indigo-500"></i> Open chat
+                    </a>
+                    {% if room.is_group %}
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50">
+                      <i class="fas fa-users mr-2 text-indigo-500"></i> Group info
+                    </a>
+                    {% endif %}
+                    <form method="post" action="{% url 'delete_chat' room.id %}" onsubmit="return confirm('Are you sure you want to delete this chat?');" class="w-full">
+                      {% csrf_token %}
+                      <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                        <i class="fas fa-trash-alt mr-2"></i> Delete chat
+                      </button>
+                    </form>
+                  </div>
+                </div>
               </div>
             </div>
           </a>
         {% endfor %}
       </div>
     {% else %}
-      <div class="p-8 text-center">
-        <div class="inline-flex items-center justify-center h-16 w-16 rounded-full bg-indigo-100 mb-4">
-          <i class="fas fa-comments text-indigo-500 text-2xl"></i>
+      <div class="p-12 text-center">
+        <div class="inline-flex items-center justify-center h-24 w-24 rounded-full bg-gradient-to-r from-indigo-100 to-purple-100 mb-6">
+          <i class="fas fa-comments text-indigo-500 text-4xl"></i>
         </div>
-        <h3 class="text-lg font-medium text-gray-900 mb-2">No conversations yet</h3>
-        <p class="text-gray-500 mb-4">Start a new chat from your contacts</p>
-        <a href="{% url 'contacts' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 transition">
-          <i class="fas fa-address-book mr-2"></i> Go to Contacts
+        <h3 class="text-2xl font-bold text-gray-900 mb-3">Your chat list is empty</h3>
+        <p class="text-gray-500 mb-6 max-w-md mx-auto">Connect with friends, create group chats, and start conversations with your contacts.</p>
+        <a href="{% url 'contacts' %}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition shadow-md transform hover:translate-y-[-2px]">
+          <i class="fas fa-address-book mr-2"></i> Browse Contacts
         </a>
       </div>
     {% endif %}
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Add a subtle hover effect for chat items
+  const chatItems = document.querySelectorAll('.chat-item');
+  chatItems.forEach(item => {
+    item.addEventListener('mouseenter', () => {
+      item.classList.add('bg-indigo-50');
+    });
+    item.addEventListener('mouseleave', () => {
+      if (!item.classList.contains('active')) {
+        item.classList.remove('bg-indigo-50');
+      }
+    });
+    item.addEventListener('click', () => {
+      item.classList.toggle('active');
+    });
+  });
+</script>
 {% endblock %}

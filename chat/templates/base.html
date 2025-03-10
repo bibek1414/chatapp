@@ -7,100 +7,163 @@
     <title>{% block title %}Chat App{% endblock %}</title>
     {% tailwind_css %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .nav-item {
+            position: relative;
+        }
+        .nav-item::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: white;
+            transition: width 0.3s;
+        }
+        .nav-item:hover::after {
+            width: 100%;
+        }
+        .nav-item.active::after {
+            width: 100%;
+        }
+    </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
-    <nav class="bg-indigo-600 text-white shadow-md">
-        <div class="container mx-auto px-4 py-3">
+    <nav class="bg-gradient-to-r from-indigo-600 to-purple-700 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4">
             <div class="flex justify-between items-center">
-                <a href="{% url 'index' %}" class="text-xl font-bold hover:text-indigo-200 transition duration-200">Chat App</a>
-                <button id="menuToggle" class="md:hidden focus:outline-none">
+                <a href="{% url 'index' %}" class="text-2xl font-bold hover:text-white transition duration-200 flex items-center">
+                    <span class="bg-white text-indigo-600 rounded-lg p-1 mr-2 shadow-md">
+                        <i class="fas fa-comment-dots"></i>
+                    </span>
+                    Chat App
+                </a>
+                <button id="menuToggle" class="md:hidden focus:outline-none bg-white/10 p-2 rounded-lg">
                     <i class="fas fa-bars"></i>
                 </button>
                 <div id="navbarMenu" class="hidden md:block">
-                    <ul class="flex space-x-6">
+                    <ul class="flex space-x-8">
                         {% if user.is_authenticated %}
                         <li>
-                            <a href="{% url 'profile' %}" class="hover:text-indigo-200 transition duration-200">
-                                <i class="fas fa-user-circle mr-1"></i> Profile
+                            <a href="{% url 'profile' %}" class="nav-item flex items-center py-1 hover:text-white transition duration-200 {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                                <i class="fas fa-user-circle mr-2"></i> Profile
                             </a>
                         </li>
-                            <li>
-                                <a href="{% url 'index' %}" class="hover:text-indigo-200 transition duration-200">
-                                    <i class="fas fa-comment-dots mr-1"></i> Chats
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{% url 'contacts' %}" class="hover:text-indigo-200 transition duration-200">
-                                    <i class="fas fa-address-book mr-1"></i> Contacts
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{% url 'logout' %}" class="hover:text-indigo-200 transition duration-200">
-                                    <i class="fas fa-sign-out-alt mr-1"></i> Logout
-                                </a>
-                            </li>
+                        <li>
+                            <a href="{% url 'index' %}" class="nav-item flex items-center py-1 hover:text-white transition duration-200 {% if request.resolver_match.url_name == 'index' %}active{% endif %}">
+                                <i class="fas fa-comment-dots mr-2"></i> Chats
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'contacts' %}" class="nav-item flex items-center py-1 hover:text-white transition duration-200 {% if request.resolver_match.url_name == 'contacts' %}active{% endif %}">
+                                <i class="fas fa-address-book mr-2"></i> Contacts
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'logout' %}" class="flex items-center bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg transition duration-200">
+                                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                            </a>
+                        </li>
                         {% else %}
-                            <li>
-                                <a href="{% url 'login' %}" class="hover:text-indigo-200 transition duration-200">
-                                    <i class="fas fa-sign-in-alt mr-1"></i> Login
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{% url 'register' %}" class="hover:text-indigo-200 transition duration-200">
-                                    <i class="fas fa-user-plus mr-1"></i> Register
-                                </a>
-                            </li>
+                        <li>
+                            <a href="{% url 'login' %}" class="nav-item flex items-center py-1 hover:text-white transition duration-200 {% if request.resolver_match.url_name == 'login' %}active{% endif %}">
+                                <i class="fas fa-sign-in-alt mr-2"></i> Login
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'register' %}" class="flex items-center bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg transition duration-200">
+                                <i class="fas fa-user-plus mr-2"></i> Register
+                            </a>
+                        </li>
                         {% endif %}
                     </ul>
                 </div>
             </div>
             <!-- Mobile menu, hidden by default -->
-            <div id="mobileMenu" class="md:hidden hidden mt-3 pb-2">
-                <ul class="space-y-3">
+            <div id="mobileMenu" class="md:hidden hidden mt-4 pb-2 bg-white/10 rounded-lg p-4">
+                <ul class="space-y-4">
                     {% if user.is_authenticated %}
-                   
-                        <li>
-                            <a href="{% url 'index' %}" class="block hover:text-indigo-200 transition duration-200">
-                                <i class="fas fa-comment-dots mr-1"></i> Chats
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'contacts' %}" class="block hover:text-indigo-200 transition duration-200">
-                                <i class="fas fa-address-book mr-1"></i> Contacts
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'logout' %}" class="block hover:text-indigo-200 transition duration-200">
-                                <i class="fas fa-sign-out-alt mr-1"></i> Logout
-                            </a>
-                        </li>
+                    <li>
+                        <a href="{% url 'profile' %}" class="block hover:translate-x-2 transition duration-200 {% if request.resolver_match.url_name == 'profile' %}font-semibold{% endif %}">
+                            <i class="fas fa-user-circle mr-2"></i> Profile
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'index' %}" class="block hover:translate-x-2 transition duration-200 {% if request.resolver_match.url_name == 'index' %}font-semibold{% endif %}">
+                            <i class="fas fa-comment-dots mr-2"></i> Chats
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'contacts' %}" class="block hover:translate-x-2 transition duration-200 {% if request.resolver_match.url_name == 'contacts' %}font-semibold{% endif %}">
+                            <i class="fas fa-address-book mr-2"></i> Contacts
+                        </a>
+                    </li>
+                    <li class="pt-2">
+                        <a href="{% url 'logout' %}" class="block bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg text-center transition duration-200">
+                            <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                        </a>
+                    </li>
                     {% else %}
-                        <li>
-                            <a href="{% url 'login' %}" class="block hover:text-indigo-200 transition duration-200">
-                                <i class="fas fa-sign-in-alt mr-1"></i> Login
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'register' %}" class="block hover:text-indigo-200 transition duration-200">
-                                <i class="fas fa-user-plus mr-1"></i> Register
-                            </a>
-                        </li>
+                    <li>
+                        <a href="{% url 'login' %}" class="block hover:translate-x-2 transition duration-200 {% if request.resolver_match.url_name == 'login' %}font-semibold{% endif %}">
+                            <i class="fas fa-sign-in-alt mr-2"></i> Login
+                        </a>
+                    </li>
+                    <li class="pt-2">
+                        <a href="{% url 'register' %}" class="block bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg text-center transition duration-200">
+                            <i class="fas fa-user-plus mr-2"></i> Register
+                        </a>
+                    </li>
                     {% endif %}
                 </ul>
             </div>
         </div>
     </nav>
 
-    <main class="container mx-auto px-4 py-6 flex-grow">
+    <main class="container mx-auto px-4 py-8 flex-grow">
         {% block content %}{% endblock %}
     </main>
 
+    <footer class="bg-gray-100 py-6 border-t border-gray-200">
+        <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
+            <p>© {% now "Y" %} Chat App. All rights reserved.</p>
+            <div class="mt-2 flex justify-center space-x-4">
+                <a href="#" class="text-gray-400 hover:text-indigo-600 transition">
+                    <i class="fab fa-github"></i>
+                </a>
+                <a href="#" class="text-gray-400 hover:text-indigo-600 transition">
+                    <i class="fab fa-twitter"></i>
+                </a>
+                <a href="#" class="text-gray-400 hover:text-indigo-600 transition">
+                    <i class="fab fa-linkedin"></i>
+                </a>
+            </div>
+        </div>
+    </footer>
+
     <script>
-        // Mobile menu toggle
+        // Mobile menu toggle with animation
         document.getElementById('menuToggle').addEventListener('click', function() {
             const mobileMenu = document.getElementById('mobileMenu');
-            mobileMenu.classList.toggle('hidden');
+            if (mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.remove('hidden');
+                setTimeout(() => {
+                    mobileMenu.style.opacity = '1';
+                }, 10);
+            } else {
+                mobileMenu.style.opacity = '0';
+                setTimeout(() => {
+                    mobileMenu.classList.add('hidden');
+                }, 300);
+            }
         });
     </script>
     {% block extra_js %}{% endblock %}

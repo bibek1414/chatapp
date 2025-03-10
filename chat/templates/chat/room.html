@@ -5,6 +5,9 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+<style>
+  /* Your existing CSS styles */
+</style>
 {% endblock %}
 
 {% block content %}
@@ -19,14 +22,18 @@
           </div>
         {% else %}
           <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-3">
-            <i class="fas fa-user text-gray-500"></i>
+            {% if participant_profiles.0.profile_picture %}
+              <img src="{{ participant_profiles.0.profile_picture.url }}" alt="{{ participant_profiles.0.username }}" class="w-10 h-10 rounded-full">
+            {% else %}
+              <i class="fas fa-user text-gray-500"></i>
+            {% endif %}
           </div>
         {% endif %}
         <div>
           <h2 class="text-lg font-semibold text-gray-800">{{ room_name }}</h2>
           <p class="text-sm text-gray-500">
             {% if room.is_group %}
-              {{ room.users.count }} members
+              {{ room.participants.count }} members
             {% else %}
               Active now
             {% endif %}
@@ -42,10 +49,6 @@
         <button id="video-call-btn" class="p-2 mr-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition action-button" title="Start Video Call">
           <i class="fas fa-video"></i>
         </button>
-        <!-- Scroll to Bottom Button -->
-        <button id="scroll-bottom-btn" class="p-2 mr-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition action-button">
-          <i class="fas fa-arrow-down"></i>
-        </button>
         <!-- Close Chat Button -->
         <a href="{% url 'index' %}" class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition action-button">
           <i class="fas fa-times"></i>
@@ -58,6 +61,19 @@
       {% for message in messages %}
         <div class="mb-4 {% if message.sender == request.user %}flex flex-row-reverse outgoing-message{% else %}flex incoming-message{% endif %}">
           <div class="message-bubble {% if message.sender == request.user %}outgoing bg-indigo-500 text-white rounded-tl-xl rounded-tr-xl rounded-bl-xl{% else %}incoming bg-white border border-gray-200 rounded-tr-xl rounded-tl-xl rounded-br-xl{% endif %} px-4 py-2 max-w-xs sm:max-w-md shadow-sm">
+            {% if message.sender != request.user %}
+              <div class="flex items-center mb-2">
+                {% if participant_profiles.0.profile_picture %}
+                  <img src="{{ participant_profiles.0.profile_picture.url }}" alt="{{ participant_profiles.0.username }}" class="w-6 h-6 rounded-full mr-2">
+                {% else %}
+                  <div class="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center mr-2">
+                    <i class="fas fa-user text-gray-500 text-xs"></i>
+                  </div>
+                {% endif %}
+                <span class="text-sm font-semibold">{{ message.sender.username }}</span>
+              </div>
+            {% endif %}
+            
             {% if message.message_type == 'text' %}
               <p class="text-sm">{{ message.content }}</p>
             {% elif message.message_type == 'audio' %}
@@ -71,7 +87,6 @@
             {% endif %}
             
             <div class="flex justify-between items-center mt-1 text-xs {% if message.sender == request.user %}text-indigo-100{% else %}text-gray-500{% endif %}">
-              <span>{{ message.sender.username }}</span>
               <span>{{ message.timestamp|date:"H:i" }}</span>
             </div>
           </div>
@@ -146,40 +161,8 @@
   const messageContainer = document.getElementById('message-container');
   const messageInput = document.getElementById('message-input');
   const sendButton = document.getElementById('send-btn');
-  const scrollBottomBtn = document.getElementById('scroll-bottom-btn');
   const connectionStatus = document.getElementById('connection-status');
   
-  // Show scroll to bottom button when user scrolls up
-  messageContainer.addEventListener('scroll', function() {
-    const isScrolledUp = messageContainer.scrollHeight - messageContainer.clientHeight - messageContainer.scrollTop > 100;
-    
-    if (isScrolledUp) {
-      scrollBottomBtn.classList.add('bg-indigo-100');
-    } else {
-      scrollBottomBtn.classList.remove('bg-indigo-100');
-    }
-  });
-  
-  // Scroll to bottom when button is clicked
-  scrollBottomBtn.addEventListener('click', function() {
-    scrollToBottom(true);
-  });
-  
-  // Scroll to bottom of message container
-  function scrollToBottom(animated = false) {
-    if (animated) {
-      messageContainer.style.scrollBehavior = 'smooth';
-      messageContainer.scrollTop = messageContainer.scrollHeight;
-      setTimeout(() => {
-        messageContainer.style.scrollBehavior = 'auto';
-      }, 500);
-    } else {
-      messageContainer.scrollTop = messageContainer.scrollHeight;
-    }
-  }
-  
-  // Scroll to bottom initially
-  scrollToBottom();
   
   // Add a message to the UI
   function addMessage(message, messageType, username, userId, timestamp, fileUrl = null) {

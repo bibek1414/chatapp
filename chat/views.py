@@ -10,21 +10,15 @@ from django.shortcuts import get_object_or_404, redirect
 from .forms import ProfileForm
 from .models import Profile
 
-from django.shortcuts import render, redirect
-from .models import Profile
-from .forms import ProfileForm
-from django.contrib.auth.decorators import login_required
-
 @login_required
 def profile(request):
-    # Try to get the profile for the logged-in user, create it if it doesn't exist
     profile, created = Profile.objects.get_or_create(user=request.user)
 
     if request.method == 'POST':
         form = ProfileForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():
             form.save()
-            return redirect('profile')  # Redirect to the profile page after saving the form
+            return redirect('profile')
     else:
         form = ProfileForm(instance=profile)
 
@@ -97,11 +91,21 @@ def room(request, room_id):
     # Get other participants
     other_participants = room.participants.exclude(id=request.user.id)
     
+    # Get profile pictures of other participants
+    participant_profiles = []
+    for participant in other_participants:
+        profile = Profile.objects.filter(user=participant).first()
+        participant_profiles.append({
+            'username': participant.username,
+            'profile_picture': profile.profile_picture if profile and profile.profile_picture else None
+        })
+    
     return render(request, 'chat/room.html', {
         'room': room,
         'room_name': room.name if room.name else ", ".join([user.username for user in other_participants]),
         'messages': messages,
         'other_participants': other_participants,
+        'participant_profiles': participant_profiles,
     })
 
 @login_required
