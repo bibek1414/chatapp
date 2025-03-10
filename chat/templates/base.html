@@ -20,6 +20,11 @@
                 <div id="navbarMenu" class="hidden md:block">
                     <ul class="flex space-x-6">
                         {% if user.is_authenticated %}
+                        <li>
+                            <a href="{% url 'profile' %}" class="hover:text-indigo-200 transition duration-200">
+                                <i class="fas fa-user-circle mr-1"></i> Profile
+                            </a>
+                        </li>
                             <li>
                                 <a href="{% url 'index' %}" class="hover:text-indigo-200 transition duration-200">
                                     <i class="fas fa-comment-dots mr-1"></i> Chats
@@ -54,6 +59,7 @@
             <div id="mobileMenu" class="md:hidden hidden mt-3 pb-2">
                 <ul class="space-y-3">
                     {% if user.is_authenticated %}
+                   
                         <li>
                             <a href="{% url 'index' %}" class="block hover:text-indigo-200 transition duration-200">
                                 <i class="fas fa-comment-dots mr-1"></i> Chats

@@ -4,32 +4,7 @@
 {% block title %}{{ room_name }} | Chat App{% endblock %}
 
 {% block extra_css %}
-<style>
-  .message-container {
-    height: 65vh;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
-  }
-  .message-container::-webkit-scrollbar {
-    width: 6px;
-  }
-  .message-container::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .message-container::-webkit-scrollbar-thumb {
-    background-color: rgba(156, 163, 175, 0.5);
-    border-radius: 3px;
-  }
-  @keyframes blink {
-    0% { opacity: 1; }
-    50% { opacity: 0; }
-    100% { opacity: 1; }
-  }
-  .recording-indicator {
-    animation: blink 1s infinite;
-  }
-</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
 {% endblock %}
 
 {% block content %}
@@ -58,16 +33,31 @@
           </p>
         </div>
       </div>
-      <a href="{% url 'index' %}" class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition">
-        <i class="fas fa-times"></i>
-      </a>
+      <div class="flex items-center">
+        <!-- Audio Call Button -->
+        <button id="audio-call-btn" class="p-2 mr-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition action-button" title="Start Audio Call">
+          <i class="fas fa-phone"></i>
+        </button>
+        <!-- Video Call Button -->
+        <button id="video-call-btn" class="p-2 mr-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition action-button" title="Start Video Call">
+          <i class="fas fa-video"></i>
+        </button>
+        <!-- Scroll to Bottom Button -->
+        <button id="scroll-bottom-btn" class="p-2 mr-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition action-button">
+          <i class="fas fa-arrow-down"></i>
+        </button>
+        <!-- Close Chat Button -->
+        <a href="{% url 'index' %}" class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition action-button">
+          <i class="fas fa-times"></i>
+        </a>
+      </div>
     </div>
     
     <!-- Messages Container -->
     <div class="p-4 bg-gray-50 message-container" id="message-container">
       {% for message in messages %}
-        <div class="mb-4 {% if message.sender == request.user %}flex flex-row-reverse{% else %}flex{% endif %}">
-          <div class="{% if message.sender == request.user %}bg-indigo-500 text-white rounded-tl-xl rounded-tr-xl rounded-bl-xl{% else %}bg-white border border-gray-200 rounded-tr-xl rounded-tl-xl rounded-br-xl{% endif %} px-4 py-2 max-w-xs sm:max-w-md shadow-sm">
+        <div class="mb-4 {% if message.sender == request.user %}flex flex-row-reverse outgoing-message{% else %}flex incoming-message{% endif %}">
+          <div class="message-bubble {% if message.sender == request.user %}outgoing bg-indigo-500 text-white rounded-tl-xl rounded-tr-xl rounded-bl-xl{% else %}incoming bg-white border border-gray-200 rounded-tr-xl rounded-tl-xl rounded-br-xl{% endif %} px-4 py-2 max-w-xs sm:max-w-md shadow-sm">
             {% if message.message_type == 'text' %}
               <p class="text-sm">{{ message.content }}</p>
             {% elif message.message_type == 'audio' %}
@@ -88,36 +78,56 @@
         </div>
       {% endfor %}
     </div>
-    
+
     <!-- Message Input -->
     <div class="p-4 bg-white border-t border-gray-200">
       <div class="flex items-end space-x-2">
-        <div class="flex-grow">
+        <div class="flex-grow message-input-container">
           <input type="text" id="message-input" placeholder="Type a message..." 
                  class="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
         </div>
-        <button id="audio-record-btn" class="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition">
+        <button id="audio-record-btn" class="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition action-button" title="Record audio message">
           <i class="fas fa-microphone"></i>
         </button>
-        <button id="send-btn" class="p-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition">
+        <button id="send-btn" class="p-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition action-button" title="Send message">
           <i class="fas fa-paper-plane"></i>
         </button>
       </div>
       
       <!-- Audio Controls -->
-      <div id="audio-controls" class="hidden mt-3 bg-indigo-50 p-2 rounded-lg">
+      <div id="audio-controls" class="hidden mt-3 bg-indigo-50 p-3 rounded-lg">
         <div class="flex items-center">
           <span id="recording-indicator" class="recording-indicator flex items-center text-red-500 mr-2">
             <i class="fas fa-circle mr-1"></i> Recording...
           </span>
-          <span id="recording-time" class="text-gray-600 mr-2">00:00</span>
-          <button id="stop-recording-btn" class="px-3 py-1 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition">
+          <span id="recording-time" class="text-gray-600 mr-2 font-mono">00:00</span>
+          <button id="stop-recording-btn" class="px-3 py-1 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition action-button">
             <i class="fas fa-stop mr-1"></i> Stop
           </button>
         </div>
       </div>
+      
+      <!-- Typing indicator (optional) -->
+      <div id="typing-indicator" class="hidden mt-2">
+        <p class="text-xs text-gray-500 italic">Someone is typing...</p>
+      </div>
     </div>
   </div>
+  
+  <!-- Connection status indicator -->
+  <div id="connection-status" class="mt-2 text-center">
+    <p class="text-xs text-green-500 flex items-center justify-center">
+      <span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span>
+      Connected
+    </p>
+  </div>
+</div>
+
+<!-- Call Window (Initially Hidden) -->
+<div id="call-window" class="hidden fixed bottom-4 right-4 bg-white rounded-lg shadow-lg p-4 w-64">
+    <video id="localVideo" autoplay muted class="w-full h-32 rounded-lg"></video>
+    <video id="remoteVideo" autoplay class="w-full h-32 rounded-lg mt-2"></video>
+    <button id="endCallBtn" class="mt-2 w-full bg-red-500 text-white py-1 rounded-lg">End Call</button>
 </div>
 
 {% block extra_js %}
@@ -136,10 +146,36 @@
   const messageContainer = document.getElementById('message-container');
   const messageInput = document.getElementById('message-input');
   const sendButton = document.getElementById('send-btn');
+  const scrollBottomBtn = document.getElementById('scroll-bottom-btn');
+  const connectionStatus = document.getElementById('connection-status');
+  
+  // Show scroll to bottom button when user scrolls up
+  messageContainer.addEventListener('scroll', function() {
+    const isScrolledUp = messageContainer.scrollHeight - messageContainer.clientHeight - messageContainer.scrollTop > 100;
+    
+    if (isScrolledUp) {
+      scrollBottomBtn.classList.add('bg-indigo-100');
+    } else {
+      scrollBottomBtn.classList.remove('bg-indigo-100');
+    }
+  });
+  
+  // Scroll to bottom when button is clicked
+  scrollBottomBtn.addEventListener('click', function() {
+    scrollToBottom(true);
+  });
   
   // Scroll to bottom of message container
-  function scrollToBottom() {
-    messageContainer.scrollTop = messageContainer.scrollHeight;
+  function scrollToBottom(animated = false) {
+    if (animated) {
+      messageContainer.style.scrollBehavior = 'smooth';
+      messageContainer.scrollTop = messageContainer.scrollHeight;
+      setTimeout(() => {
+        messageContainer.style.scrollBehavior = 'auto';
+      }, 500);
+    } else {
+      messageContainer.scrollTop = messageContainer.scrollHeight;
+    }
   }
   
   // Scroll to bottom initially
@@ -147,13 +183,15 @@
   
   // Add a message to the UI
   function addMessage(message, messageType, username, userId, timestamp, fileUrl = null) {
+    const isCurrentUser = userId == currentUserId;
+    
     const messageDiv = document.createElement('div');
-    messageDiv.className = 'mb-4 ' + (userId == currentUserId ? 'flex flex-row-reverse' : 'flex');
+    messageDiv.className = 'mb-4 ' + (isCurrentUser ? 'flex flex-row-reverse outgoing-message' : 'flex incoming-message');
     
     const messageBubble = document.createElement('div');
-    messageBubble.className = userId == currentUserId 
-      ? 'bg-indigo-500 text-white rounded-tl-xl rounded-tr-xl rounded-bl-xl px-4 py-2 max-w-xs sm:max-w-md shadow-sm' 
-      : 'bg-white border border-gray-200 rounded-tr-xl rounded-tl-xl rounded-br-xl px-4 py-2 max-w-xs sm:max-w-md shadow-sm';
+    messageBubble.className = 'message-bubble ' + (isCurrentUser 
+      ? 'outgoing bg-indigo-500 text-white rounded-tl-xl rounded-tr-xl rounded-bl-xl' 
+      : 'incoming bg-white border border-gray-200 rounded-tr-xl rounded-tl-xl rounded-br-xl') + ' px-4 py-2 max-w-xs sm:max-w-md shadow-sm';
     
     if (messageType === 'text') {
       const messageText = document.createElement('p');
@@ -168,6 +206,7 @@
       audio.src = fileUrl;
       audio.controls = true;
       audio.className = 'w-full max-w-xs';
+      audio.preload = 'metadata';
       
       audioContainer.appendChild(audio);
       messageBubble.appendChild(audioContainer);
@@ -175,7 +214,7 @@
       const link = document.createElement('a');
       link.href = fileUrl;
       link.target = '_blank';
-      link.className = 'flex items-center text-sm ' + (userId == currentUserId ? 'text-indigo-100 hover:text-white' : 'text-indigo-500 hover:text-indigo-700') + ' transition';
+      link.className = 'flex items-center text-sm ' + (isCurrentUser ? 'text-indigo-100 hover:text-white' : 'text-indigo-500 hover:text-indigo-700') + ' transition';
       
       const icon = document.createElement('i');
       icon.className = 'fas fa-download mr-2';
@@ -186,7 +225,7 @@
     }
     
     const messageInfo = document.createElement('div');
-    messageInfo.className = 'flex justify-between items-center mt-1 text-xs ' + (userId == currentUserId ? 'text-indigo-100' : 'text-gray-500');
+    messageInfo.className = 'flex justify-between items-center mt-1 text-xs ' + (isCurrentUser ? 'text-indigo-100' : 'text-gray-500');
     
     const usernameSpan = document.createElement('span');
     usernameSpan.textContent = username;
@@ -203,7 +242,24 @@
     messageDiv.appendChild(messageBubble);
     
     messageContainer.appendChild(messageDiv);
-    scrollToBottom();
+    
+    // Add entrance animation
+    messageBubble.style.opacity = '0';
+    messageBubble.style.transform = 'translateY(10px)';
+    
+    setTimeout(() => {
+      messageBubble.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+      messageBubble.style.opacity = '1';
+      messageBubble.style.transform = 'translateY(0)';
+    }, 10);
+    
+    // Check if user is scrolled to the bottom before adding the message
+    const isScrolledToBottom = messageContainer.scrollHeight - messageContainer.clientHeight - messageContainer.scrollTop < 50;
+    
+    // Scroll to bottom if the user was already at the bottom
+    if (isScrolledToBottom) {
+      scrollToBottom();
+    }
   }
   
   // Send message function
@@ -215,6 +271,7 @@
         'type': 'text'
       }));
       messageInput.value = '';
+      messageInput.focus();
     }
   }
   
@@ -227,22 +284,235 @@
   
   sendButton.addEventListener('click', sendMessage);
   
-  // WebSocket event listeners
+  // WebSocket event listeners for chat
   chatSocket.onmessage = function(e) {
     const data = JSON.parse(e.data);
-    addMessage(
-      data.message, 
-      data.message_type, 
-      data.username, 
-      data.user_id, 
-      data.timestamp,
-      data.file_url
-    );
+    
+    // Handle different message types from the WebSocket
+    if (data.type === 'offer' || data.type === 'answer' || data.type === 'candidate' || data.type === 'end_call') {
+      handleWebRTCMessage(data);
+    } else {
+      // Regular chat message
+      addMessage(
+        data.message, 
+        data.message_type, 
+        data.username, 
+        data.user_id, 
+        data.timestamp,
+        data.file_url
+      );
+    }
+  };
+  
+  chatSocket.onopen = function(e) {
+    connectionStatus.innerHTML = '<p class="text-xs text-green-500 flex items-center justify-center"><span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span> Connected</p>';
   };
   
   chatSocket.onclose = function(e) {
     console.error('Chat socket closed unexpectedly');
+    connectionStatus.innerHTML = '<p class="text-xs text-red-500 flex items-center justify-center"><span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-1"></span> Disconnected - trying to reconnect...</p>';
+    
+    // Attempt to reconnect after 3 seconds
+    setTimeout(() => {
+      window.location.reload();
+    }, 3000);
   };
+  
+  // Track window focus to handle notifications
+  let windowFocused = true;
+  window.addEventListener('focus', function() {
+    windowFocused = true;
+  });
+  window.addEventListener('blur', function() {
+    windowFocused = false;
+  });
+  
+  // Make addMessage function globally available for audio.js
+  window.addMessage = addMessage;
+  
+  // WebRTC video/audio call functionality
+  const localVideo = document.getElementById('localVideo');
+  const remoteVideo = document.getElementById('remoteVideo');
+  const endCallBtn = document.getElementById('endCallBtn');
+  const callWindow = document.getElementById('call-window');
+  const videoCallBtn = document.getElementById('video-call-btn');
+  const audioCallBtn = document.getElementById('audio-call-btn');
+  
+  let localStream;
+  let remoteStream;
+  let peerConnection;
+  
+  const configuration = {
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' }
+    ]
+  };
+  
+  async function startCall(type) {
+    callWindow.classList.remove('hidden');
+    
+    try {
+      localStream = await navigator.mediaDevices.getUserMedia({ 
+        video: type === 'video', 
+        audio: true 
+      });
+      
+      localVideo.srcObject = localStream;
+      
+      peerConnection = new RTCPeerConnection(configuration);
+      
+      localStream.getTracks().forEach(track => 
+        peerConnection.addTrack(track, localStream)
+      );
+      
+      peerConnection.ontrack = event => {
+        remoteVideo.srcObject = event.streams[0];
+      };
+      
+      peerConnection.onicecandidate = event => {
+        if (event.candidate) {
+          chatSocket.send(JSON.stringify({
+            type: 'candidate',
+            content: event.candidate
+          }));
+        }
+      };
+      
+      const offer = await peerConnection.createOffer();
+      await peerConnection.setLocalDescription(offer);
+      
+      chatSocket.send(JSON.stringify({
+        type: 'offer',
+        content: offer
+      }));
+    } catch (error) {
+      console.error('Error starting call:', error);
+      alert('Unable to access camera/microphone. Please check your permissions.');
+      callWindow.classList.add('hidden');
+    }
+  }
+  
+  function handleWebRTCMessage(data) {
+    if (data.type === 'offer') {
+      // Show call window when receiving an offer
+      callWindow.classList.remove('hidden');
+      
+      // Get user media and then handle the offer
+      navigator.mediaDevices.getUserMedia({ 
+        video: true, // We can adjust this based on call type if needed
+        audio: true 
+      })
+      .then(stream => {
+        localStream = stream;
+        localVideo.srcObject = stream;
+        
+        // Create peer connection if it doesn't exist
+        if (!peerConnection) {
+          peerConnection = new RTCPeerConnection(configuration);
+          
+          // Add local tracks to the connection
+          localStream.getTracks().forEach(track => 
+            peerConnection.addTrack(track, localStream)
+          );
+          
+          // Handle remote tracks
+          peerConnection.ontrack = event => {
+            remoteVideo.srcObject = event.streams[0];
+          };
+          
+          // Handle ICE candidates
+          peerConnection.onicecandidate = event => {
+            if (event.candidate) {
+              chatSocket.send(JSON.stringify({
+                type: 'candidate',
+                content: event.candidate
+              }));
+            }
+          };
+        }
+        
+        // Set remote description from the offer
+        peerConnection.setRemoteDescription(new RTCSessionDescription(data.content))
+          .then(() => {
+            // Create an answer
+            return peerConnection.createAnswer();
+          })
+          .then(answer => {
+            // Set local description (our answer)
+            return peerConnection.setLocalDescription(answer);
+          })
+          .then(() => {
+            // Send the answer back
+            chatSocket.send(JSON.stringify({
+              type: 'answer',
+              content: peerConnection.localDescription
+            }));
+          })
+          .catch(error => {
+            console.error('Error handling offer:', error);
+            callWindow.classList.add('hidden');
+          });
+      })
+      .catch(error => {
+        console.error('Error accessing media devices:', error);
+        alert('Unable to access camera/microphone. Please check your permissions.');
+        callWindow.classList.add('hidden');
+      });
+      
+    } else if (data.type === 'answer') {
+      // Set the remote description using the received answer
+      peerConnection.setRemoteDescription(new RTCSessionDescription(data.content))
+        .catch(error => {
+          console.error('Error setting remote description:', error);
+        });
+        
+    } else if (data.type === 'candidate') {
+      // Add ICE candidate received from the remote peer
+      if (peerConnection) {
+        peerConnection.addIceCandidate(new RTCIceCandidate(data.content))
+          .catch(error => {
+            console.error('Error adding ICE candidate:', error);
+          });
+      }
+      
+    } else if (data.type === 'end_call') {
+      // End the call
+      endCall();
+    }
+  }
+  
+  function endCall() {
+    // Close the peer connection
+    if (peerConnection) {
+      peerConnection.close();
+      peerConnection = null;
+    }
+    
+    // Stop all media tracks
+    if (localStream) {
+      localStream.getTracks().forEach(track => track.stop());
+      localStream = null;
+    }
+    
+    // Clear video elements
+    localVideo.srcObject = null;
+    remoteVideo.srcObject = null;
+    
+    // Hide call window
+    callWindow.classList.add('hidden');
+  }
+  
+  // Event listeners for call buttons
+  videoCallBtn.addEventListener('click', () => startCall('video'));
+  audioCallBtn.addEventListener('click', () => startCall('audio'));
+  endCallBtn.addEventListener('click', () => {
+    endCall();
+    
+    // Notify other party that call has ended
+    chatSocket.send(JSON.stringify({
+      type: 'end_call'
+    }));
+  });
 </script>
 <script src="{% static 'js/audio.js' %}"></script>
 {% endblock %}

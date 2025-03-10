@@ -2,13 +2,39 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db.models import Q
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse , HttpRequest
 from django.views.decorators.csrf import csrf_exempt
-import json
-import os
-from uuid import UUID
 from .models import Contact, Room, Message
-from .forms import CustomUserCreationForm, MessageForm, ContactSearchForm
+from .forms import CustomUserCreationForm, ContactSearchForm
+from django.shortcuts import get_object_or_404, redirect
+from .forms import ProfileForm
+from .models import Profile
+
+from django.shortcuts import render, redirect
+from .models import Profile
+from .forms import ProfileForm
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def profile(request):
+    # Try to get the profile for the logged-in user, create it if it doesn't exist
+    profile, created = Profile.objects.get_or_create(user=request.user)
+
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            form.save()
+            return redirect('profile')  # Redirect to the profile page after saving the form
+    else:
+        form = ProfileForm(instance=profile)
+
+    return render(request, 'chat/profile.html', {'form': form})
+
+
+def delete_chat(request, room_id):
+    room = get_object_or_404(Room, id=room_id)
+    room.delete()
+    return redirect('index') 
 
 def register(request):
     if request.method == 'POST':
@@ -31,18 +57,28 @@ def index(request):
         latest_message = room.messages.last()
         other_participants = room.participants.exclude(id=request.user.id)
         
+        # Get profile images of other participants
+        participant_profiles = []
+        for participant in other_participants:
+            profile = Profile.objects.filter(user=participant).first()
+            participant_profiles.append({
+                'username': participant.username,
+                'profile_picture': profile.profile_picture if profile and profile.profile_picture else None
+            })
+        
         room_info = {
             'id': room.id,
             'name': room.name if room.name else ", ".join([user.username for user in other_participants]),
             'latest_message': latest_message,
             'other_participants': other_participants,
-            'unread_count': room.messages.filter(is_read=False).exclude(sender=request.user).count()
+            'participant_profiles': participant_profiles,
+            'unread_count': room.messages.filter(is_read=False).exclude(sender=request.user).count(),
         }
         room_data.append(room_info)
     
     return render(request, 'chat/index.html', {
         'room_data': room_data,
-    })
+    })  
 
 @login_required
 def room(request, room_id):

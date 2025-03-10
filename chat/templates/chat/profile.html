@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load tailwind_tags %}
+
+{% block title %}Profile - Chat App{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto p-4">
+    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="p-6">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Profile</h2>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="id_profile_picture">
+                        Profile Picture
+                    </label>
+                    {{ form.profile_picture }}
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="id_bio">
+                        Bio
+                    </label>
+                    {{ form.bio }}
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="id_phone_number">
+                        Phone Number
+                    </label>
+                    {{ form.phone_number }}
+                </div>
+                <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-full hover:bg-indigo-700 transition action-button">
+                    Save Changes
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

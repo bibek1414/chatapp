@@ -2,6 +2,12 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from .models import Message
+from .models import Profile
+
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ['profile_picture', 'bio', 'phone_number']
 
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(required=True)
