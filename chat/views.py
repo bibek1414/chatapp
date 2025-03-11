@@ -210,6 +210,17 @@ def room(request, room_id):
 def contacts(request):
     user_contacts = Contact.objects.filter(user=request.user).select_related('contact')
     
+    # Get IDs of users that are already contacts
+    contact_user_ids = [contact.contact.id for contact in user_contacts]
+    
+    # Add user's own ID to exclude list
+    exclude_ids = contact_user_ids + [request.user.id]
+    
+    # Get up to 10 suggested users that are not already contacts
+    suggested_users = User.objects.exclude(
+        id__in=exclude_ids
+    ).select_related('profile').order_by('?')[:10]  # Random order, limit to 10
+    
     form = ContactSearchForm(request.GET)
     search_query = ''
     
@@ -217,25 +228,25 @@ def contacts(request):
         search_query = form.cleaned_data.get('search', '')
         if search_query:
             # Search for users that are not already contacts
-            users = User.objects.filter(
+            search_results = User.objects.filter(
                 Q(username__icontains=search_query) | 
                 Q(email__icontains=search_query)
             ).exclude(
-                id__in=[contact.contact.id for contact in user_contacts]
-            ).exclude(
-                id=request.user.id
-            )
+                id__in=exclude_ids
+            ).select_related('profile')
+            
             return render(request, 'chat/contacts.html', {
                 'contacts': user_contacts,
-                'search_results': users,
+                'search_results': search_results,
+                'suggested_users': suggested_users,
                 'form': form,
             })
     
     return render(request, 'chat/contacts.html', {
         'contacts': user_contacts,
+        'suggested_users': suggested_users,
         'form': form,
     })
-
 @login_required
 def add_contact(request, user_id):
     contact_user = get_object_or_404(User, id=user_id)

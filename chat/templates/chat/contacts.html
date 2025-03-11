@@ -18,9 +18,20 @@
             <div class="divide-y divide-gray-100">
               {% for contact in contacts %}
                 <div class="py-3 flex items-center justify-between">
-                  <div>
-                    <h3 class="text-md font-medium text-gray-800">{{ contact.contact.username }}</h3>
-                    <p class="text-sm text-gray-500">{{ contact.contact.email }}</p>
+                  <div class="flex items-center">
+                    <div class="mr-3">
+                      {% if contact.contact.profile.profile_picture %}
+                        <img src="{{ contact.contact.profile.profile_picture.url }}" alt="{{ contact.contact.username }}" class="h-10 w-10 rounded-full object-cover">
+                      {% else %}
+                        <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                          <i class="fas fa-user text-indigo-500"></i>
+                        </div>
+                      {% endif %}
+                    </div>
+                    <div>
+                      <h3 class="text-md font-medium text-gray-800">{{ contact.contact.username }}</h3>
+                      <p class="text-sm text-gray-500">{{ contact.contact.email }}</p>
+                    </div>
                   </div>
                   <div class="flex space-x-2">
                     <a href="{% url 'start_chat' contact.contact.id %}" class="p-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition">
@@ -72,9 +83,20 @@
             <div class="divide-y divide-gray-100">
               {% for user in search_results %}
                 <div class="py-3 flex items-center justify-between">
-                  <div>
-                    <h3 class="text-md font-medium text-gray-800">{{ user.username }}</h3>
-                    <p class="text-sm text-gray-500">{{ user.email }}</p>
+                  <div class="flex items-center">
+                    <div class="mr-3">
+                      {% if user.profile.profile_picture %}
+                        <img src="{{ user.profile.profile_picture.url }}" alt="{{ user.username }}" class="h-10 w-10 rounded-full object-cover">
+                      {% else %}
+                        <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                          <i class="fas fa-user text-indigo-500"></i>
+                        </div>
+                      {% endif %}
+                    </div>
+                    <div>
+                      <h3 class="text-md font-medium text-gray-800">{{ user.username }}</h3>
+                      <p class="text-sm text-gray-500">{{ user.email }}</p>
+                    </div>
                   </div>
                   <a href="{% url 'add_contact' user.id %}" class="px-3 py-1 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition flex items-center">
                     <i class="fas fa-user-plus mr-1"></i> Add
@@ -87,8 +109,57 @@
       </div>
     </div>
     
-    <!-- Create Group Chat -->
     <div class="col-span-2 md:col-span-1">
+      <!-- Suggested Users -->
+      <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+        <div class="bg-indigo-50 px-4 py-3 border-b border-gray-100">
+          <h2 class="text-lg font-semibold text-gray-800">
+            <i class="fas fa-user-friends mr-2 text-indigo-500"></i>People You May Know
+          </h2>
+        </div>
+        <div class="p-4">
+          {% if suggested_users %}
+            <div class="grid grid-cols-1 gap-4">
+              {% for user in suggested_users %}
+                <div class="p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                      <div class="mr-3">
+                        {% if user.profile.profile_picture %}
+                          <img src="{{ user.profile.profile_picture.url }}" alt="{{ user.username }}" class="h-12 w-12 rounded-full object-cover">
+                        {% else %}
+                          <div class="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center">
+                            <i class="fas fa-user text-indigo-500"></i>
+                          </div>
+                        {% endif %}
+                      </div>
+                      <div>
+                        <h3 class="text-md font-medium text-gray-800">{{ user.username }}</h3>
+                        {% if user.first_name or user.last_name %}
+                          <p class="text-sm text-gray-600">{{ user.first_name }} {{ user.last_name }}</p>
+                        {% endif %}
+                      </div>
+                    </div>
+                    <a href="{% url 'add_contact' user.id %}" class="px-3 py-1 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition flex items-center">
+                      <i class="fas fa-user-plus mr-1"></i> Add
+                    </a>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center py-8">
+              <div class="inline-flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 mb-3">
+                <i class="fas fa-users text-indigo-500"></i>
+              </div>
+              <p class="text-gray-500">No suggestions available at the moment.</p>
+              <p class="text-gray-500">Try searching for specific users above.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+      
+      <!-- Create Group Chat (if contacts exist) -->
       {% if contacts %}
         <div class="bg-white rounded-xl shadow-md overflow-hidden">
           <div class="bg-indigo-50 px-4 py-3 border-b border-gray-100">
