@@ -16,7 +16,13 @@
                     </label>
                     <div class="flex items-center space-x-4">
                         <div class="flex-shrink-0">
-                            <img class="h-16 w-16 rounded-full object-cover" src="{{ user.profile.profile_picture.url }}" alt="{{ user.username }}">
+                            {% if user.profile.profile_picture %}
+                                <img class="h-16 w-16 rounded-full object-cover" src="{{ user.profile.profile_picture.url }}" alt="{{ user.username }}">
+                            {% else %}
+                                <div class="h-16 w-16 rounded-full bg-gray-200 flex items-center justify-center">
+                                    <span class="text-gray-500 text-sm">No Image</span>
+                                </div>
+                            {% endif %}
                         </div>
                         <div class="flex-1">
                             {{ form.profile_picture }}
