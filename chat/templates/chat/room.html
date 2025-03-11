@@ -218,13 +218,19 @@
     <video id="remoteVideo" autoplay class="w-full h-32 rounded-lg mt-2"></video>
     <button id="endCallBtn" class="mt-2 w-full bg-red-500 text-white py-1 rounded-lg">End Call</button>
 </div>
+<!-- Audio notification element -->
+<audio id="notification-sound" preload="auto">
+  <source src="{% static 'sounds/notification.mp3' %}" type="audio/mpeg">
+  <source src="{% static 'sounds/notification.ogg' %}" type="audio/ogg">
+</audio>
 
 {% block extra_js %}
 <script>
   const roomId = "{{ room.id }}";
   const currentUserId = {{ request.user.id }};
   const currentUsername = "{{ request.user.username }}";
-  
+  const notificationSound = document.getElementById('notification-sound');
+  let lastMessageId = null;
   // Determine the protocol based on the current page protocol
   const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
   
@@ -563,9 +569,42 @@ messageForm.addEventListener('submit', function(e) {
         data.timestamp,
         data.file_url
       );
+      if (data.user_id !== currentUserId && data.id !== lastMessageId) {
+        playNotificationSound();
+        lastMessageId = data.id;
+      }
     }
   };
+  function playNotificationSound() {
+    if (notificationSound) {
+      notificationSound.currentTime = 0;
+      notificationSound.play().catch(e => {
+        console.log("Audio playback failed:", e);
+      });
+    }
+  }
+  // Check for new messages periodically
+  let previousUnreadCount = document.querySelectorAll('.unread-badge').length;
   
+  function checkForNewMessages() {
+    const currentUnreadCount = document.querySelectorAll('.unread-badge').length;
+    
+    if (currentUnreadCount > previousUnreadCount && !document.hidden) {
+      playNotificationSound();
+    }
+    
+    previousUnreadCount = currentUnreadCount;
+  }
+  
+  // Poll for new messages every 10 seconds
+  setInterval(checkForNewMessages, 10);
+  
+  // Also check when tab becomes visible again
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      checkForNewMessages();
+    }
+  });
   chatSocket.onopen = function(e) {
     connectionStatus.innerHTML = '<p class="text-xs text-green-500 flex items-center justify-center"><span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span> Connected</p>';
   };

@@ -1,51 +1,182 @@
-{% extends 'base.html' %}
+{% load static tailwind_tags %}
 
-{% block title %}Register | Chat App{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | Chat App</title>
+    {% tailwind_css %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .animation-container {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .floating-icon {
+            position: absolute;
+            animation: float 6s infinite ease-in-out;
+            opacity: 0.7;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+        
+        .form-input {
+            padding-left: 2.5rem;
+            width: 100%;
+            border-radius: 0.375rem;
+            border-color: #D1D5DB;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+        }
+        
+        .form-input:focus {
+            border-color: #6366F1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+            outline: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="flex min-h-screen">
+        <!-- Left side - Animation and graphics -->
+        <div class="hidden lg:flex lg:w-7/12 animation-container flex-col items-center justify-center p-12 relative">
+            <div class="text-white text-center mb-8 z-10">
+                <h1 class="text-4xl font-bold mb-4">Chat App</h1>
+                <p class="text-xl">Join our community and start chatting today</p>
+            </div>
+            
+            <!-- Animated floating elements -->
+            <i class="fas fa-comment-dots text-white text-6xl floating-icon" style="top: 20%; left: 20%; animation-delay: 0s;"></i>
+            <i class="fas fa-users text-white text-5xl floating-icon" style="top: 30%; left: 70%; animation-delay: 1s;"></i>
+            <i class="fas fa-paper-plane text-white text-4xl floating-icon" style="top: 60%; left: 30%; animation-delay: 2s;"></i>
+            <i class="fas fa-bell text-white text-5xl floating-icon" style="top: 70%; left: 65%; animation-delay: 1.5s;"></i>
+            <i class="fas fa-video text-white text-6xl floating-icon" style="top: 45%; left: 50%; animation-delay: 0.5s;"></i>
+            <div class="absolute bottom-12 left-0 right-0 text-center text-white z-10">
+                <p class="text-lg font-semibold mb-4">Get started in minutes</p>
+                <div class="flex justify-center space-x-8">
+                    <div class="text-center">
+                        <i class="fas fa-user-plus text-3xl mb-2"></i>
+                        <p>Create Account</p>
+                    </div>
+                    <div class="text-center">
+                        <i class="fas fa-user-group text-3xl mb-2"></i>
+                        <p>Find Friends</p>
+                    </div>
+                    <div class="text-center">
+                        <i class="fas fa-comment text-3xl mb-2"></i>
+                        <p>Start Chatting</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right side - Registration form -->
+        <div class="w-full lg:w-5/12 flex items-center justify-center p-8">
+            <div class="w-full max-w-md">
+                <div class="bg-white rounded-lg shadow-xl p-8">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-bold text-indigo-700">Create Account</h2>
+                        <p class="text-gray-600 mt-2">Join thousands of users chatting now</p>
+                    </div>
+                    
+                    <form method="post" class="space-y-6">
+                        {% csrf_token %}
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2" for="{{ form.username.id_for_label }}">Username</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-user text-gray-400"></i>
+                                </div>
+                                <input type="text" name="{{ form.username.html_name }}" id="{{ form.username.id_for_label }}" 
+                                       class="form-input" 
+                                       {% if form.username.value %}value="{{ form.username.value }}"{% endif %}
+                                       required>
+                            </div>
+                            {% if form.username.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.username.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2" for="{{ form.email.id_for_label }}">Email</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-envelope text-gray-400"></i>
+                                </div>
+                                <input type="email" name="{{ form.email.html_name }}" id="{{ form.email.id_for_label }}" 
+                                       class="form-input"
+                                       {% if form.email.value %}value="{{ form.email.value }}"{% endif %}
+                                       required>
+                            </div>
+                            {% if form.email.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.email.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2" for="{{ form.password1.id_for_label }}">Password</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-lock text-gray-400"></i>
+                                </div>
+                                <input type="password" name="{{ form.password1.html_name }}" id="{{ form.password1.id_for_label }}" 
+                                       class="form-input" required>
+                            </div>
+                            {% if form.password1.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.password1.errors.0 }}</p>
+                            {% endif %}
+                            <p class="text-gray-500 text-sm mt-1">Use at least 8 characters with letters and numbers</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2" for="{{ form.password2.id_for_label }}">Confirm Password</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-lock text-gray-400"></i>
+                                </div>
+                                <input type="password" name="{{ form.password2.html_name }}" id="{{ form.password2.id_for_label }}" 
+                                       class="form-input" required>
+                            </div>
+                            {% if form.password2.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.password2.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        {% if form.non_field_errors %}
+                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                            {% for error in form.non_field_errors %}
+                            <p class="mb-0">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
 
-{% block content %}
-<div class="flex justify-center items-center min-h-screen bg-gray-50">
-    <div class="w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
-        <h2 class="text-2xl font-bold text-center text-indigo-600 mb-6">Register</h2>
-        <form method="post" class="space-y-6">
-            {% csrf_token %}
-            <div>
-                <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700">Username</label>
-                {{ form.username }}
-                {% if form.username.errors %}
-                    <div class="text-red-500 text-sm mt-1">{{ form.username.errors }}</div>
-                {% endif %}
+                        <button type="submit" class="w-full bg-indigo-600 text-white px-4 py-3 rounded-md hover:bg-indigo-700 transition flex justify-center items-center font-medium">
+                            <i class="fas fa-user-plus mr-2"></i> Create Account
+                        </button>
+                    </form>
+                    
+                    <div class="mt-8 text-center">
+                        <p class="text-gray-600">Already have an account?</p>
+                        <a href="{% url 'login' %}" class="mt-3 block bg-gray-100 text-indigo-700 px-4 py-3 rounded-md hover:bg-gray-200 transition flex justify-center items-center font-medium">
+                            <i class="fas fa-sign-in-alt mr-2"></i> Login Now
+                        </a>
+                    </div>
+                    
+                    <div class="mt-8 border-t pt-6">
+                        <p class="text-gray-500 text-sm text-center">
+                            By registering, you agree to our Terms of Service and Privacy Policy
+                        </p>
+                    </div>
+                </div>
             </div>
-            <div>
-                <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700">Email</label>
-                {{ form.email }}
-                {% if form.email.errors %}
-                    <div class="text-red-500 text-sm mt-1">{{ form.email.errors }}</div>
-                {% endif %}
-            </div>
-            <div>
-                <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-gray-700">Password</label>
-                {{ form.password1 }}
-                {% if form.password1.errors %}
-                    <div class="text-red-500 text-sm mt-1">{{ form.password1.errors }}</div>
-                {% endif %}
-                <div class="text-sm text-gray-500 mt-1">{{ form.password1.help_text }}</div>
-            </div>
-            <div>
-                <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-gray-700">Confirm Password</label>
-                {{ form.password2 }}
-                {% if form.password2.errors %}
-                    <div class="text-red-500 text-sm mt-1">{{ form.password2.errors }}</div>
-                {% endif %}
-            </div>
-            <div>
-                <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    Register
-                </button>
-            </div>
-        </form>
-        <div class="mt-6 text-center">
-            <p class="text-sm text-gray-600">Already have an account? <a href="{% url 'login' %}" class="font-medium text-indigo-600 hover:text-indigo-500">Login</a></p>
         </div>
     </div>
-</div>
-{% endblock %}
+</body>
+</html>
