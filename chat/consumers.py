@@ -29,7 +29,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         data = json.loads(text_data)
         message_type = data.get('type', 'text')
         
-        if message_type in ['text', 'audio', 'file']:
+        if message_type in ['text', 'image', 'video', 'audio', 'file']:
             content = data.get('message', '')
             file_url = data.get('file_url', '')
             

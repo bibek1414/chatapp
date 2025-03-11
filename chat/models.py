@@ -44,12 +44,13 @@ class Room(models.Model):
         if self.name:
             return self.name
         return ", ".join([user.username for user in self.participants.all()])
-
 class Message(models.Model):
     MESSAGE_TYPES = (
         ('text', 'Text'),
+        ('image', 'Image'),
+        ('video', 'Video'),
         ('audio', 'Audio'),
-        ('file', 'File'),
+        ('file', 'File'),  # For PDFs, TXT, etc.
     )
     
     room = models.ForeignKey(Room, related_name='messages', on_delete=models.CASCADE)

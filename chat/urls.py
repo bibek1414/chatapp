@@ -13,4 +13,5 @@ urlpatterns = [
     path('upload_file/<uuid:room_id>/', views.upload_file, name='upload_file'),
     path('delete_chat/<uuid:room_id>/', views.delete_chat, name='delete_chat'),
     path('profile/', views.profile, name='profile'),
+    # path('upload_file/', views.upload_file, name='upload_file'),
 ]

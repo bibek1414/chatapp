@@ -7,6 +7,51 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
 <style>
   /* Your existing CSS styles */
+  .preview-container {
+    max-width: 200px;
+    max-height: 200px;
+    overflow: hidden;
+    margin-top: 10px;
+    border-radius: 8px;
+    position: relative;
+  }
+  .preview-container img, 
+  .preview-container video {
+    width: 100%;
+    object-fit: cover;
+  }
+  .remove-preview {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(0,0,0,0.5);
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .file-preview {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    background: #f0f0f0;
+    border-radius: 8px;
+    margin-top: 10px;
+  }
+  .file-preview i {
+    margin-right: 10px;
+    font-size: 24px;
+  }
+  .file-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+  }
 </style>
 {% endblock %}
 
@@ -80,9 +125,24 @@
               <div class="flex items-center justify-center w-full">
                 <audio src="{{ message.file.url }}" controls class="w-full max-w-xs"></audio>
               </div>
+            {% elif message.message_type == 'image' %}
+              <div class="w-full">
+                <img src="{{ message.file.url }}" alt="Image" class="max-w-full rounded-lg">
+              </div>
+            {% elif message.message_type == 'video' %}
+              <div class="w-full">
+                <video src="{{ message.file.url }}" controls class="max-w-full rounded-lg"></video>
+              </div>
             {% elif message.message_type == 'file' %}
               <a href="{{ message.file.url }}" target="_blank" class="flex items-center text-sm {% if message.sender == request.user %}text-indigo-100 hover:text-white{% else %}text-indigo-500 hover:text-indigo-700{% endif %} transition">
-                <i class="fas fa-download mr-2"></i> Download File
+                <i class="
+                  {% if '.pdf' in message.file.name %}fas fa-file-pdf
+                  {% elif '.txt' in message.file.name %}fas fa-file-alt
+                  {% elif '.doc' in message.file.name or '.docx' in message.file.name %}fas fa-file-word
+                  {% elif '.xls' in message.file.name or '.xlsx' in message.file.name %}fas fa-file-excel
+                  {% else %}fas fa-file
+                  {% endif %} mr-2"></i>
+                {{ message.file.name|truncatechars:20 }}
               </a>
             {% endif %}
             
@@ -96,31 +156,45 @@
 
     <!-- Message Input -->
     <div class="p-4 bg-white border-t border-gray-200">
-      <div class="flex items-end space-x-2">
-        <div class="flex-grow message-input-container">
-          <input type="text" id="message-input" placeholder="Type a message..." 
-                 class="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-        </div>
-        <button id="audio-record-btn" class="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition action-button" title="Record audio message">
-          <i class="fas fa-microphone"></i>
-        </button>
-        <button id="send-btn" class="p-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition action-button" title="Send message">
-          <i class="fas fa-paper-plane"></i>
-        </button>
-      </div>
-      
-      <!-- Audio Controls -->
-      <div id="audio-controls" class="hidden mt-3 bg-indigo-50 p-3 rounded-lg">
-        <div class="flex items-center">
-          <span id="recording-indicator" class="recording-indicator flex items-center text-red-500 mr-2">
-            <i class="fas fa-circle mr-1"></i> Recording...
-          </span>
-          <span id="recording-time" class="text-gray-600 mr-2 font-mono">00:00</span>
-          <button id="stop-recording-btn" class="px-3 py-1 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition action-button">
-            <i class="fas fa-stop mr-1"></i> Stop
+      <form id="message-form" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <!-- File Preview (initially hidden) -->
+        <div id="preview-container" class="hidden mb-3"></div>
+        
+        <div class="flex items-end space-x-2">
+          <div class="flex-grow message-input-container">
+            <input type="text" id="message-input" placeholder="Type a message..." 
+                   class="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+          </div>
+          <!-- File Upload Button -->
+          <label for="file-input" class="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition action-button cursor-pointer" title="Attach a file">
+            <i class="fas fa-paperclip"></i>
+            <input type="file" id="file-input" class="hidden" accept="image/*,video/*,.pdf,.txt,.doc,.docx">
+          </label>
+           <!-- Audio Record Button -->
+          <button id="audio-record-btn" class="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition action-button" title="Record audio message" type="button">
+            <i class="fas fa-microphone"></i>
+          </button> 
+          <!-- Send Button -->
+          <button id="send-btn" class="p-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition action-button" title="Send message" type="submit">
+            <i class="fas fa-paper-plane"></i>
           </button>
         </div>
-      </div>
+      </form>
+      
+       <!-- Audio Controls -->
+    <div id="audio-controls" class="hidden mt-3 bg-indigo-50 p-3 rounded-lg">
+    <div class="flex items-center">
+        <span id="recording-indicator" class="recording-indicator flex items-center text-red-500 mr-2">
+            <i class="fas fa-circle mr-1"></i> Recording...
+        </span>
+        <span id="recording-time" class="text-gray-600 mr-2 font-mono">00:00</span>
+        <button id="stop-recording-btn" class="px-3 py-1 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition action-button">
+            <i class="fas fa-stop mr-1"></i> Stop
+        </button>
+    </div>
+</div> 
       
       <!-- Typing indicator (optional) -->
       <div id="typing-indicator" class="hidden mt-2">
@@ -147,7 +221,7 @@
 
 {% block extra_js %}
 <script>
-  let roomId = "{{ room.id }}";
+  const roomId = "{{ room.id }}";
   const currentUserId = {{ request.user.id }};
   const currentUsername = "{{ request.user.username }}";
   
@@ -162,7 +236,11 @@
   const messageInput = document.getElementById('message-input');
   const sendButton = document.getElementById('send-btn');
   const connectionStatus = document.getElementById('connection-status');
+  const fileInput = document.getElementById('file-input');
+  const previewContainer = document.getElementById('preview-container');
+  const messageForm = document.getElementById('message-form');
   
+  let selectedFile = null;
   
   // Add a message to the UI
   function addMessage(message, messageType, username, userId, timestamp, fileUrl = null) {
@@ -176,6 +254,20 @@
       ? 'outgoing bg-indigo-500 text-white rounded-tl-xl rounded-tr-xl rounded-bl-xl' 
       : 'incoming bg-white border border-gray-200 rounded-tr-xl rounded-tl-xl rounded-br-xl') + ' px-4 py-2 max-w-xs sm:max-w-md shadow-sm';
     
+    // Add sender info for incoming messages
+    if (!isCurrentUser) {
+      const senderInfo = document.createElement('div');
+      senderInfo.className = 'flex items-center mb-2';
+      senderInfo.innerHTML = `
+        <div class="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center mr-2">
+          <i class="fas fa-user text-gray-500 text-xs"></i>
+        </div>
+        <span class="text-sm font-semibold">${username}</span>
+      `;
+      messageBubble.appendChild(senderInfo);
+    }
+    
+    // Handle different message types
     if (messageType === 'text') {
       const messageText = document.createElement('p');
       messageText.className = 'text-sm';
@@ -193,34 +285,64 @@
       
       audioContainer.appendChild(audio);
       messageBubble.appendChild(audioContainer);
+    } else if (messageType === 'image') {
+      const img = document.createElement('img');
+      img.src = fileUrl;
+      img.alt = 'Image';
+      img.className = 'max-w-full rounded-lg';
+      img.loading = 'lazy';
+      
+      const imgContainer = document.createElement('div');
+      imgContainer.className = 'w-full';
+      imgContainer.appendChild(img);
+      
+      messageBubble.appendChild(imgContainer);
+    } else if (messageType === 'video') {
+      const video = document.createElement('video');
+      video.src = fileUrl;
+      video.controls = true;
+      video.className = 'max-w-full rounded-lg';
+      video.preload = 'metadata';
+      
+      const videoContainer = document.createElement('div');
+      videoContainer.className = 'w-full';
+      videoContainer.appendChild(video);
+      
+      messageBubble.appendChild(videoContainer);
     } else if (messageType === 'file') {
+      const fileName = fileUrl.split('/').pop();
+      const fileExtension = fileName.split('.').pop().toLowerCase();
+      
+      let iconClass = 'fas fa-file';
+      if (fileExtension === 'pdf') {
+        iconClass = 'fas fa-file-pdf';
+      } else if (fileExtension === 'txt') {
+        iconClass = 'fas fa-file-alt';
+      } else if (fileExtension === 'doc' || fileExtension === 'docx') {
+        iconClass = 'fas fa-file-word';
+      } else if (fileExtension === 'xls' || fileExtension === 'xlsx') {
+        iconClass = 'fas fa-file-excel';
+      }
+      
       const link = document.createElement('a');
       link.href = fileUrl;
       link.target = '_blank';
       link.className = 'flex items-center text-sm ' + (isCurrentUser ? 'text-indigo-100 hover:text-white' : 'text-indigo-500 hover:text-indigo-700') + ' transition';
+      link.innerHTML = `<i class="${iconClass} mr-2"></i>${fileName.length > 20 ? fileName.substring(0, 17) + '...' : fileName}`;
       
-      const icon = document.createElement('i');
-      icon.className = 'fas fa-download mr-2';
-      
-      link.appendChild(icon);
-      link.appendChild(document.createTextNode('Download File'));
       messageBubble.appendChild(link);
     }
     
+    // Add timestamp
     const messageInfo = document.createElement('div');
     messageInfo.className = 'flex justify-between items-center mt-1 text-xs ' + (isCurrentUser ? 'text-indigo-100' : 'text-gray-500');
-    
-    const usernameSpan = document.createElement('span');
-    usernameSpan.textContent = username;
     
     const timeSpan = document.createElement('span');
     const date = new Date(timestamp);
     timeSpan.textContent = date.getHours().toString().padStart(2, '0') + ':' + 
                           date.getMinutes().toString().padStart(2, '0');
     
-    messageInfo.appendChild(usernameSpan);
     messageInfo.appendChild(timeSpan);
-    
     messageBubble.appendChild(messageInfo);
     messageDiv.appendChild(messageBubble);
     
@@ -236,38 +358,195 @@
       messageBubble.style.transform = 'translateY(0)';
     }, 10);
     
-    // Check if user is scrolled to the bottom before adding the message
-    const isScrolledToBottom = messageContainer.scrollHeight - messageContainer.clientHeight - messageContainer.scrollTop < 50;
+    // Scroll to bottom if needed
+    scrollToBottom();
+  }
+  
+  // Scroll to bottom of message container
+  function scrollToBottom() {
+    messageContainer.scrollTop = messageContainer.scrollHeight;
+  }
+  
+  // Handle file input change
+  fileInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
     
-    // Scroll to bottom if the user was already at the bottom
-    if (isScrolledToBottom) {
-      scrollToBottom();
-    }
-  }
-  
-  // Send message function
-  function sendMessage() {
-    const message = messageInput.value.trim();
-    if (message) {
-      chatSocket.send(JSON.stringify({
-        'message': message,
-        'type': 'text'
-      }));
-      messageInput.value = '';
-      messageInput.focus();
-    }
-  }
-  
-  // Event listeners
-  messageInput.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-      sendMessage();
+    selectedFile = file;
+    previewContainer.innerHTML = '';
+    previewContainer.classList.remove('hidden');
+    
+    // Determine file type
+    const fileType = file.type.split('/')[0];
+    
+    if (fileType === 'image') {
+      // Create image preview
+      const previewImg = document.createElement('div');
+      previewImg.className = 'preview-container';
+      
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(file);
+      img.onload = function() {
+        URL.revokeObjectURL(this.src);
+      };
+      
+      previewImg.appendChild(img);
+      
+      // Add remove button
+      const removeBtn = createRemoveButton();
+      previewImg.appendChild(removeBtn);
+      
+      previewContainer.appendChild(previewImg);
+    } else if (fileType === 'video') {
+      // Create video preview
+      const previewVideo = document.createElement('div');
+      previewVideo.className = 'preview-container';
+      
+      const video = document.createElement('video');
+      video.src = URL.createObjectURL(file);
+      video.controls = true;
+      video.muted = true;
+      video.onloadedmetadata = function() {
+        URL.revokeObjectURL(this.src);
+      };
+      
+      previewVideo.appendChild(video);
+      
+      // Add remove button
+      const removeBtn = createRemoveButton();
+      previewVideo.appendChild(removeBtn);
+      
+      previewContainer.appendChild(previewVideo);
+    } else {
+      // Create document preview
+      const previewFile = document.createElement('div');
+      previewFile.className = 'file-preview';
+      
+      // Choose icon based on file extension
+      let iconClass = 'fas fa-file';
+      const fileExt = file.name.split('.').pop().toLowerCase();
+      
+      if (fileExt === 'pdf') {
+        iconClass = 'fas fa-file-pdf';
+      } else if (fileExt === 'txt') {
+        iconClass = 'fas fa-file-alt';
+      } else if (fileExt === 'doc' || fileExt === 'docx') {
+        iconClass = 'fas fa-file-word';
+      } else if (fileExt === 'xls' || fileExt === 'xlsx') {
+        iconClass = 'fas fa-file-excel';
+      }
+      
+      previewFile.innerHTML = `
+        <i class="${iconClass} text-indigo-500"></i>
+        <div class="file-name">${file.name}</div>
+        <div class="remove-preview ml-auto">
+          <i class="fas fa-times"></i>
+        </div>
+      `;
+      
+      previewFile.querySelector('.remove-preview').addEventListener('click', function() {
+        previewContainer.innerHTML = '';
+        previewContainer.classList.add('hidden');
+        fileInput.value = '';
+        selectedFile = null;
+      });
+      
+      previewContainer.appendChild(previewFile);
     }
   });
   
-  sendButton.addEventListener('click', sendMessage);
+  // Create remove button for previews
+  function createRemoveButton() {
+    const removeBtn = document.createElement('div');
+    removeBtn.className = 'remove-preview';
+    removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+    
+    removeBtn.addEventListener('click', function() {
+      previewContainer.innerHTML = '';
+      previewContainer.classList.add('hidden');
+      fileInput.value = '';
+      selectedFile = null;
+    });
+    
+    return removeBtn;
+  }
   
-  // WebSocket event listeners for chat
+  // Handle form submission
+ // Handle form submission
+messageForm.addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const message = messageInput.value.trim();
+  
+  if (selectedFile) {
+      // Handle file upload through AJAX
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('room_id', roomId);
+      formData.append('message', message);
+      
+      // Determine message type based on file type
+      const fileType = selectedFile.type.split('/')[0];
+      let messageType = 'file';
+      
+      if (fileType === 'image') {
+          messageType = 'image';
+      } else if (fileType === 'video') {
+          messageType = 'video';
+      } else if (fileType === 'audio') {
+          messageType = 'audio';
+      }
+      
+      formData.append('message_type', messageType);
+      
+      // Send file to server
+      fetch('/upload_file/' + roomId + '/', {
+          method: 'POST',
+          body: formData,
+          headers: {
+              'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+          }
+      })
+      .then(response => response.json())
+      .then(data => {
+          if (data.status === 'success') {
+              // Clear form and preview
+              messageInput.value = '';
+              previewContainer.innerHTML = '';
+              previewContainer.classList.add('hidden');
+              fileInput.value = '';
+              selectedFile = null;
+              
+              // Server will handle broadcasting the message via WebSocket
+          } else {
+              alert('Error uploading file: ' + data.error);
+          }
+      })
+      .catch(error => {
+          console.error('Error:', error);
+          alert('Failed to upload file. Please try again.');
+      });
+  } else if (message) {
+      // Text-only message
+      chatSocket.send(JSON.stringify({
+          'message': message,
+          'type': 'text'
+      }));
+      messageInput.value = '';
+  }
+  
+  messageInput.focus();
+});
+  
+  // Event listeners
+  messageInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      messageForm.dispatchEvent(new Event('submit'));
+    }
+  });
+  
+  // WebSocket event listeners
   chatSocket.onmessage = function(e) {
     const data = JSON.parse(e.data);
     
@@ -301,7 +580,7 @@
     }, 3000);
   };
   
-  // Track window focus to handle notifications
+  // Track window focus for notifications
   let windowFocused = true;
   window.addEventListener('focus', function() {
     windowFocused = true;
@@ -313,7 +592,10 @@
   // Make addMessage function globally available for audio.js
   window.addMessage = addMessage;
   
-  // WebRTC video/audio call functionality
+  // Initialize scroll position
+  scrollToBottom();
+  
+  // WebRTC video/audio call functionality remains the same
   const localVideo = document.getElementById('localVideo');
   const remoteVideo = document.getElementById('remoteVideo');
   const endCallBtn = document.getElementById('endCallBtn');
@@ -324,7 +606,6 @@
   let localStream;
   let remoteStream;
   let peerConnection;
-  
   const configuration = {
     iceServers: [
       { urls: 'stun:stun.l.google.com:19302' }

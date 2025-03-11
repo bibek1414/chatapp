@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Developer Cheatsheet</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css" id="code-theme">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+  <style>
+    .copy-button {
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .code-block:hover .copy-button {
+      opacity: 1;
+    }
+    .dark .copy-button {
+      background-color: #4b5563;
+      color: white;
+    }
+    .code-block {
+      position: relative;
+      margin-bottom: 1rem;
+    }
+    .copied-message {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      background-color: #10b981;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .copied-message.show {
+      opacity: 1;
+    }
+    .dark .hljs {
+      background: #1f2937;
+    }
+    .light .hljs {
+      background: #f3f4f6;
+      color: #1f2937;
+    }
+    .collapsible-content {
+      transition: max-height 0.3s ease-out;
+      max-height: 0;
+      overflow: hidden;
+    }
+    .collapsible-content.show {
+      max-height: 10000px;
+    }
+    .toggle-icon {
+      transition: transform 0.3s;
+    }
+    .rotated {
+      transform: rotate(90deg);
+    }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-800 transition-colors duration-200 light">
+  <div class="container mx-auto p-4">
+    <header class="mb-8">
+      <div class="flex justify-between items-center">
+        <h1 class="text-3xl font-bold text-indigo-600 dark:text-indigo-400">Developer Cheatsheet</h1>
+        <div class="flex space-x-4">
+          <button id="theme-toggle" class="p-2 rounded-lg bg-indigo-100 text-indigo-600 hover:bg-indigo-200 dark:bg-gray-700 dark:text-indigo-300 dark:hover:bg-gray-600 transition-colors duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+          </button>
+          <select id="section-jump" class="p-2 rounded-lg bg-white border border-gray-300 text-gray-700 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
+            <option value="">Jump to section</option>
+            <option value="docker">Docker</option>
+            <option value="git">Git & GitHub</option>
+            <option value="linux">Linux Commands</option>
+            <option value="html">HTML</option>
+            <option value="css">CSS</option>
+            <option value="javascript">JavaScript</option>
+          </select>
+        </div>
+      </div>
+      <p class="mt-2 text-gray-600 dark:text-gray-300">Essential commands and code snippets for developers. Click section headers to expand/collapse.</p>
+    </header>
+
+    <main class="space-y-6">
+      <!-- Docker Section -->
+      <section id="docker" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 transition-colors duration-200">
+        <div class="section-header cursor-pointer flex justify-between items-center" data-target="docker-content">
+          <h2 class="text-2xl font-bold text-blue-600 dark:text-blue-400">
+            <span class="inline-block w-8 h-8 mr-2 text-center bg-blue-100 dark:bg-blue-900 rounded-full text-blue-600 dark:text-blue-400">
+              <svg class="inline-block w-5 h-5 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path>
+              </svg>
+            </span>
+            Docker
+          </h2>
+          <svg xmlns="http://www.w3.org/2000/svg" class="toggle-icon h-6 w-6 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+        <div id="docker-content" class="collapsible-content mt-4">
+          <h3 class="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">Container Management</h3>
+          <div class="code-block">
+            <pre><code class="language-bash"># List running containers
+docker ps
+
+# List all containers (including stopped)
+docker ps -a
+
+# Start a container
+docker start CONTAINER_ID
+
+# Stop a container
+docker stop CONTAINER_ID
+
+# Remove a container
+docker rm CONTAINER_ID
+
+# Execute command in running container
+docker exec -it CONTAINER_ID COMMAND
+
+# View container logs
+docker logs CONTAINER_ID</code></pre>
+            <button class="copy-button absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 rounded px-2 py-1 text-sm">Copy</button>
+            <div class="copied-message">Copied!</div>
+          </div>
+
+          <h3 class="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">Image Management</h3>
+          <div class="code-block">
+            <pre><code class="language-bash"># List images
+docker images
+
+# Pull an image
+docker pull IMAGE_NAME:TAG
+
+# Build an image from Dockerfile
+docker build -t IMAGE_NAME:TAG PATH
+
+# Remove an image
+docker rmi IMAGE_ID
+
+# Push image to registry
+docker push IMAGE_NAME:TAG</code></pre>
+            <button class="copy-button absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 rounded px-2 py-1 text-sm">Copy</button>
+            <div class="copied-message">Copied!</div>
+          </div>
+
+          <h3 class="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">Docker Compose</h3>
+          <div class="code-block">
+            <pre><code class="language-bash"># Start services
+docker-compose up
+
+# Start services in detached mode
+docker-compose up -d
+
+# Stop services
+docker-compose down
+
+# View logs
+docker-compose logs
+
+# Build/rebuild services
+docker-compose build</code></pre>
+            <button class="copy-button absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 rounded px-2 py-1 text-sm">Copy</button>
+            <div class="copied-message">Copied!</div>
+          </div>
+
+          <h3 class="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">Volumes</h3>
+          <div class="code-block">
+            <pre><code class="language-bash"># List volumes
+docker volume ls
+
+# Create a volume
+docker volume create VOLUME_NAME
+
+# Remove a volume
+docker volume rm VOLUME_NAME
+
+# Inspect a volume
+docker volume inspect VOLUME_NAME</code></pre>
+            <button class="copy-button absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 rounded px-2 py-1 text-sm">Copy</button>
+            <div class="copied-message">Copied!</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Git & GitHub Section -->
+      <section id="git" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 transition-colors duration-200">
+        <div class="section-header cursor-pointer flex justify-between items-center" data-target="git-content">
+          <h2 class="text-2xl font-bold text-green-600 dark:text-green-400">
+            <span class="inline-block w-8 h-8 mr-2 text-center bg-green-100 dark:bg-green-900 rounded-full text-green-600 dark:text-green-400">
+              <svg class="inline-block w-5 h-5 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path>
+              </svg>
+            </span>
+            Git & GitHub
+          </h2>
+          <svg xmlns="http://www.w3.org/2000/svg" class="toggle-icon h-6 w-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+        <div id="git-content" class="collapsible-content mt-4">
+          <h3 class="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">Repository Setup</h3>
+          <div class="code-block">
+            <pre><code class="language-bash"># Initialize a new repository
+git init
+
+# Clone a repository
+git clone REPOSITORY_URL
+
+# Add a remote repository
+git remote add origin REPOSITORY_URL
+
+# View remote repositories
+git remote -v</code></pre>
+            <button class="copy-button absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 rounded px-2 py-1 text-sm">Copy</button>
+            <div class="copied-message">Copied!</div>
+          </div>
+
+          <h3 class="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">Basic Workflow</h3>
+          <div class="code-block">
+            <pre><code class="language-bash"># Check status
+git status
+
+# Add files to staging
+git add FILENAME
+git add .  # Add all files
+
+# Commit changes
+git commit -m "Commit message"
+
+# Push to remote
+git push origin BRANCH_NAME
+
+# Pull from remote
+git pull origin BRANCH_NAME
+
+# View commit history
+git log</code></pre>
+            <button class="copy-button absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 rounded px-2 py-1 text-sm">Copy</button>
+            <div class="copied-message">Copied!</div>
+          </div>
+
+          <h3 class="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">Branching</h3>
+          <div class="code-block">
+            <pre><code class="language-bash"># List all branches
+git branch
+
+# Create a new branch
+git branch BRANCH_NAME
+
+# Switch to a branch
+git checkout BRANCH_NAME
+
+# Create and switch to a new branch
+git checkout -b BRANCH_NAME
+
+# Merge a branch into current branch
+git merge BRANCH_NAME
+
+# Delete a branch
+git branch -d BRANCH_NAME</code></pre>
+            <button class="copy-button absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 rounded px-2 py-1 text-sm">Copy</button>
+            <div class="copied-message">Copied!</div>
+          </div>
+
+          <h3 class="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">Undoing Changes</h3>
+          <div class="code-block">
+            <pre><code class="language-bash"># Discard changes in working directory
+git checkout -- FILENAME
+
+# Unstage a file
+git reset HEAD FILENAME
+
+# Amend last commit
+git commit --amend
+
+# Reset to a specific commit
+git reset COMMIT_ID
+
+# Revert a commit (creates new commit)
+git revert COMMIT_ID</code></pre>
+            <button class="copy-button absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 rounded px-2 py-1 text-sm">Copy</button>
+            <div class="copied-message">Copied!</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Linux Commands Section -->
+      <section id="linux" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 transition-colors duration-200">
+        <div class="section-header cursor-pointer flex justify-between items-center" data-target="linux-content">
+          <h2 class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+            <span class="inline-block w-8 h-8 mr-2 text-center bg-yellow-100 dark:bg-yellow-900 rounded-full text-yellow-600 dark:text-yellow-400">
+              <svg class="inline-block w-5 h-5 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
+              </svg>
+            </span>
+            Linux Commands
+          </h2>
+          <svg xmlns="http://www.w3.org/2000/svg" class="toggle-icon h-6 w-6 text-yellow-600 dark:text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+        <div id="linux-content" class="collapsible-content mt-4">
+          <h3 class="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">File Operations</h3>
+          <div class="code-block">
+            <pre><code class="language-bash"># List files
+ls
+ls -la  # List all files with details
+
+# Change directory
+cd DIRECTORY
+
+# Print working directory
+pwd
+
+# Create a directory
+mkdir DIRECTORY
+
+# Remove a file
+rm FILENAME
+
+# Remove a directory
+rm -r DIRECTORY
+
+# Copy a file
+cp SOURCE DESTINATION
+
+# Move/rename a file
+mv SOURCE DESTINATION
+
+# Create an empty file
+touch FILENAME
+
+# View file content
+cat FILENAME
+
+# View file content with pagination
+less FILENAME
+
+# Find files
+find PATH -name "PATTERN"</code></pre>
+            <button class="copy-button absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 rounded px-2 py-1 text-sm">Copy</button>
+            <div class="copied-message">Copied!</div>
+          </div>
+
+          <h3 class="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">System Monitoring</h3>
+          <div class="code-block">
+            <pre><code class="language-bash"># Show system information
+uname -a
+
+# Display disk usage
+df -h
+
+# Display memory usage
+free -h
+
+# View running processes
+ps aux
+
+# Interactive process viewer
+top
+
+# Kill a process
+kill PID
+killall PROCESS_NAME
+
+# System resource usage
+htop</code></pre>
+            <button class="copy-button absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 rounded px-2 py-1 text-sm">Copy</button>
+            <div class="copied-message">Copied!</div>
+          </div>
+
+          <h3 class="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">User Management</h3>
+          <div class="code-block">
+            <pre><code class="language-bash"># Add a user
+sudo adduser USERNAME
+
+# Delete a user
+sudo userdel USERNAME
+
+# Change user password
+sudo passwd USERNAME
+
+# Switch user
+su USERNAME
+
+# Run command as superuser
+sudo COMMAND
+
+# View user information
+id USERNAME
+
+# List all users
+cat /etc/passwd</code></pre>
+            <button class="copy-button absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 rounded px-2 py-1 text-sm">Copy</button>
+            <div class="copied-message">Copied!</div>
+          </div>
+
+          <h3 class="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">Networking</h3>
+          <div class="code-block">
+            <pre><code class="language-bash"># Show network interfaces
+ifconfig
+
+# Test connectivity
+ping HOST
+
+# DNS lookup
+nslookup DOMAIN
+
+# Show listening ports
+netstat -tuln
+
+# Download file
+wget URL
+
+# Secure copy
+scp SOURCE user@host:DESTINATION</code></pre>
+            <button class="copy-button absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 rounded px-2 py-1 text-sm">Copy</button>
+            <div class="copied-message">Copied!</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- HTML Section -->
+      <section id="html" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 transition-colors duration-200">
+        <div class="section-header cursor-pointer flex justify-between items-center" data-target="html-content">
+          <h2 class="text-2xl font-bold text-red-600 dark:text-red-400">
+            <span class="inline-block w-8 h-8 mr-2 text-center bg-red-100 dark:bg-red-900 rounded-full text-red-600 dark:text-red-400">
+              <svg class="inline-block w-5 h-5 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+              </svg>
+            </span>
+            HTML
+          </h2>
+          <svg xmlns="http://www.w3.org/2000/svg" class="toggle-icon h-6 w-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+        <div id="html-content" class="collapsible-content mt-4">
+          <h3 class="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">HTML Boilerplate</h3>
+          <div class="code-block">
+            <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+  &lt;title&gt;Document Title&lt;/title&gt;
+  &lt;meta name="description" content="Page description"&gt;
+  &lt;link rel="stylesheet" href="styles.css"&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;header&gt;
+    &lt;nav&gt;
+      &lt;!-- Navigation content --&gt;
+    &lt;/nav&gt;
+  &lt;/header&gt;
+  
+  &lt;main&gt;
+    &lt;!-- Main content --&gt;
+  &lt;/main&gt;
+  
+  &lt;footer&gt;
+    &lt;!-- Footer content --&gt;
+  &lt;/footer&gt;
+  
+  &lt;script src="script.js"&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+            <button class="copy-button absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 rounded px-2 py-1 text-sm">Copy</button>
+            <div class="copied-message">Copied!</div>
+          </div>
+
+          <h3 class="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">Forms</h3>
+          <div class="code-block">
+            <pre><code class="language-html">&lt;form action="/submit" method="post"&gt;
+  &lt;div&gt;
+    &lt;label for="name"&gt;Name:&lt;/label&gt;
+    &lt;input type="text" id="name" name="name" required&gt;
+  &lt;/div&gt;
+  
+  &lt;div&gt;
+    &lt;label for="email"&gt;Email:&lt;/label&gt;
+    &lt;input type="email" id="email" name="email" required&gt;
+  &lt;/div&gt;
+  
+  &lt;div&gt;
+    &lt;label for="password"&gt;Password:&lt;/label&gt;
+    &lt;input type="password" id="password" name="password" required&gt;
+  &lt;/div&gt;
+  
+  &lt;div&gt;
+    &lt;label for="message"&gt;Message:&lt;/label&gt;
+    &lt;textarea id="message" name="message" rows="4"&gt;&lt;/textarea&gt;
+  &lt;/div&gt;
+  
+  &lt;div&gt;
+    &lt;label&gt;
+      &lt;input type="checkbox" name="subscribe" value="yes"&gt;
+      Subscribe to newsletter
+    &lt;/label&gt;
+  &lt;/div&gt;
+  
+  &lt;div&gt;
+    &lt;fieldset&gt;
+      &lt;legend&gt;Preferred Contact Method&lt;/legend&gt;
+      &lt;label&gt;
+        &lt;input type="radio" name="contact" value="email" checked&gt;
+        Email
+      &lt;/label&gt;
+      &lt;label&gt;
+        &lt;input type="radio" name="contact" value="phone"&gt;
+        Phone
+      &lt;/label&gt;
+    &lt;/fieldset&gt;
+  &lt;/div&gt;
+  
+  &lt;div&gt;
+    &lt;label for="country"&gt;Country:&lt;/label&gt;
+    &lt;select id="country" name="country"&gt;
+      &lt;option value=""&gt;Select a country&lt;/option&gt;
+      &lt;option value="us"&gt;United States&lt;/option&gt;
+      &lt;option value="ca"&gt;Canada&lt;/option&gt;
+      &lt;option value="uk"&gt;United Kingdom&lt;/option&gt;
+    &lt;/select&gt;
+  &lt;/div&gt;
+  
+  &lt;button type="submit"&gt;Submit&lt;/button&gt;
+  &lt;button type="reset"&gt;Reset&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+            <button class="copy-button absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 rounded px-2 py-1 text-sm">Copy</button>
+            <div class="copied-message">Copied!</div>
+          </div>
+
+          <h3 class="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">Semantic HTML Elements</h3>
+          <div class="code-block">
+            <pre><code class="language-html">&lt;!-- Article --&gt;
+&lt;article&gt;
+  &lt;header&gt;
+    &lt;h1&gt;Article Title&lt;/h1&gt;
+    &lt;p&gt;Published on &lt;time datetime="2023-03-15"&gt;March 15, 2023&lt;/time&gt;&lt;/p&gt;
+  &lt;/header&gt;
+  &lt;p&gt;Article content...&lt;/p&gt;
+  &lt;aside&gt;Related information&lt;/aside&gt;
+  &lt;footer&gt;Article footer&lt;/footer&gt;
+&lt;/article&gt;
+
+&lt;!-- Navigation --&gt;
+&lt;nav&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;a href="#"&gt;Home&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="#"&gt;About&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="#"&gt;Services&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="#"&gt;Contact&lt;/a&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;
+
+&lt;!-- Figure with caption --&gt;
+&lt;figure&gt;
+  &lt;img src="image.jpg" alt="Description"&gt;
+  &lt;figcaption&gt;Caption for the image&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;!-- Details/Summary (Accordion) --&gt;
+&lt;details&gt;
+  &lt;summary&gt;Click to expand&lt;/summary&gt;
+  &lt;p&gt;Hidden content that shows when expanded.&lt;/p&gt;
+&lt;/details&gt;</code></pre>
+            <button class="copy-button absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 rounded px-2 py-1 text-sm">Copy</button>
+            <div class="copied-message">Copied!</div>
+          </div>
+
+          <h3 class="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">Tables</h3>
+          <div class="code-block">
+            <pre><code class="language-html">&lt;table&gt;
+  &lt;caption&gt;Monthly Sales&lt;/caption&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Month&lt;/th&gt;
+      &lt;th&gt;Product A&lt;/th&gt;
+      &lt;th&gt;Product B&lt;/th&gt;
+      &lt;th&gt;Total&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;January&lt;/td&gt;
+      &lt;td&gt;100&lt;/td&gt;
+      &lt;td&gt;150&lt;/td&gt;
+      &lt;td&gt;250&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;February&lt;/td&gt;
+      &lt;td&gt;120&lt;/td&gt;
+      &lt;td&gt;140&lt;/td&gt;
+      &lt;td&gt;260&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+  &lt;tfoot&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Total&lt;/th&gt;
+      &lt;td&gt;220&lt;/td&gt;
+      &lt;td&gt;290&lt;/td&gt;
+      &lt;td&gt;510&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tfoot&gt;
+&lt;/table&gt;</code></pre>
+<button class="copy-button absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 rounded px-2 py-1 text-sm">Copy</button>
+<div class="copied-message">Copied!</div>
+</div>
+</div>
+</section>
+
+<!-- CSS Section -->
+<section id="css" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 transition-colors duration-200">
+<div class="section-header cursor-pointer flex justify-between items-center" data-target="css-content">
+<h2 class="text-2xl font-bold text-purple-600 dark:text-purple-400">
+<span class="inline-block w-8 h-8 mr-2 text-center bg-purple-100 dark:bg-purple-900 rounded-full text-purple-600 dark:text-purple-400">
+  <svg class="inline-block w-5 h-5 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path>
+  </svg>
+</span>
+CSS
+</h2>
+<svg xmlns="http://www.w3.org/2000/svg" class="toggle-icon h-6 w-6 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+</svg>
+</div>
+<div id="css-content" class="collapsible-content mt-4">
+<h3 class="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">Flexbox</h3>
+<div class="code-block">
+<pre><code class="language-css">/* Container */
+.flex-container {
+display: flex;
+flex-direction: row; /* row | row-reverse | column | column-reverse */
+flex-wrap: wrap; /* nowrap | wrap | wrap-reverse */
+justify-content: space-between; /* flex-start | flex-end | center | space-between | space-around | space-evenly */
+align-items: center; /* flex-start | flex-end | center | baseline | stretch */
+align-content: space-around; /* flex-start | flex-end | center | space-between | space-around | stretch */
+gap: 10px; /* row-gap and column-gap shorthand */
+}
+
+/* Items */
+.flex-item {
+order: 2; /* Integer value, default is 0 */
+flex-grow: 1; /* Number, default is 0 */
+flex-shrink: 0; /* Number, default is 1 */
+flex-basis: auto; /* length | auto | content */
+flex: 1 0 auto; /* flex-grow, flex-shrink, flex-basis */
+align-self: flex-end; /* auto | flex-start | flex-end | center | baseline | stretch */
+}</code></pre>
+<button class="copy-button absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 rounded px-2 py-1 text-sm">Copy</button>
+<div class="copied-message">Copied!</div>
+</div>
+
+<h3 class="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">Grid</h3>
+<div class="code-block">
+<pre><code class="language-css">/* Container */
+.grid-container {
+display: grid;
+grid-template-columns: repeat(3, 1fr); /* Can use px, %, fr, auto, etc. */
+grid-template-rows: auto 200px 1fr;
+grid-template-areas: 
+"header header header"
+"sidebar content content"
+"footer footer footer";
+grid-column-gap: 10px;
+grid-row-gap: 15px;
+gap: 15px 10px; /* row-gap column-gap shorthand */
+justify-items: center; /* start | end | center | stretch */
+align-items: center; /* start | end | center | stretch */
+justify-content: space-around; /* start | end | center | stretch | space-around | space-between | space-evenly */
+align-content: space-between; /* start | end | center | stretch | space-around | space-between | space-evenly */
+}
+
+/* Items */
+.grid-item {
+grid-column-start: 1;
+grid-column-end: 3; /* or grid-column-end: span 2; */
+grid-row-start: 1;
+grid-row-end: 3;
+grid-column: 1 / 3; /* shorthand for grid-column-start/grid-column-end */
+grid-row: 1 / 3; /* shorthand for grid-row-start/grid-row-end */
+grid-area: header; /* Reference to grid-template-areas */
+justify-self: end; /* start | end | center | stretch */
+align-self: center; /* start | end | center | stretch */
+}</code></pre>
+<button class="copy-button absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 rounded px-2 py-1 text-sm">Copy</button>
+<div class="copied-message">Copied!</div>
+</div>
+
+<h3 class="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">Animations</h3>
+<div class="code-block">
+<pre><code class="language-css">/* Keyframe Animation */
+@keyframes slide-in {
+0% {
+transform: translateX(-100%);
+opacity: 0;
+}
+100% {
+transform: translateX(0);
+opacity: 1;
+}
+}
+
+.animated-element {
+animation-name: slide-in;
+animation-duration: 1s;
+animation-timing-function: ease-out; /* linear | ease | ease-in | ease-out | ease-in-out | cubic-bezier() */
+animation-delay: 0.5s;
+animation-iteration-count: infinite; /* Number or infinite */
+animation-direction: alternate; /* normal | reverse | alternate | alternate-reverse */
+animation-fill-mode: forwards; /* none | forwards | backwards | both */
+animation-play-state: running; /* running | paused */
+
+/* Shorthand */
+animation: slide-in 1s ease-out 0.5s infinite alternate forwards;
+}
+
+/* Transitions */
+.transition-element {
+transition-property: all; /* all | none | property name */
+transition-duration: 0.3s;
+transition-timing-function: ease-in-out; /* same as animation-timing-function */
+transition-delay: 0s;
+
+/* Shorthand */
+transition: all 0.3s ease-in-out 0s;
+}</code></pre>
+<button class="copy-button absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 rounded px-2 py-1 text-sm">Copy</button>
+<div class="copied-message">Copied!</div>
+</div>
+
+<h3 class="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">Media Queries</h3>
+<div class="code-block">
+<pre><code class="language-css">/* Responsive Design */
+/* Mobile First Approach */
+.element {
+width: 100%;
+}
+
+/* Tablet */
+@media (min-width: 768px) {
+.element {
+width: 50%;
+}
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+.element {
+width: 33.33%;
+}
+}
+
+/* Media query with multiple conditions */
+@media (min-width: 768px) and (max-width: 1023px) and (orientation: landscape) {
+.element {
+/* Specific styles for landscape tablets */
+}
+}
+
+/* Print styles */
+@media print {
+.no-print {
+display: none;
+}
+}</code></pre>
+<button class="copy-button absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 rounded px-2 py-1 text-sm">Copy</button>
+<div class="copied-message">Copied!</div>
+</div>
+</div>
+</section>
+
+<!-- JavaScript Section -->
+<section id="javascript" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 transition-colors duration-200">
+<div class="section-header cursor-pointer flex justify-between items-center" data-target="javascript-content">
+<h2 class="text-2xl font-bold text-orange-600 dark:text-orange-400">
+<span class="inline-block w-8 h-8 mr-2 text-center bg-orange-100 dark:bg-orange-900 rounded-full text-orange-600 dark:text-orange-400">
+  <svg class="inline-block w-5 h-5 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+  </svg>
+</span>
+JavaScript
+</h2>
+<svg xmlns="http://www.w3.org/2000/svg" class="toggle-icon h-6 w-6 text-orange-600 dark:text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+</svg>
+</div>
+<div id="javascript-content" class="collapsible-content mt-4">
+<h3 class="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">DOM Manipulation</h3>
+<div class="code-block">
+<pre><code class="language-javascript">// Selecting elements
+const element = document.getElementById('id');
+const elements = document.getElementsByClassName('class');
+const elementsByTag = document.getElementsByTagName('div');
+const singleElement = document.querySelector('.class'); // Returns first match
+const allElements = document.querySelectorAll('.class'); // Returns NodeList
+
+// Creating elements
+const newElement = document.createElement('div');
+newElement.textContent = 'Hello, World!';
+newElement.innerHTML = '<span>Hello, World!</span>';
+
+// Modifying elements
+element.setAttribute('class', 'new-class');
+element.getAttribute('id');
+element.removeAttribute('disabled');
+element.classList.add('active');
+element.classList.remove('hidden');
+element.classList.toggle('visible');
+element.classList.contains('active');
+
+// Styling elements
+element.style.color = 'red';
+element.style.backgroundColor = '#f0f0f0';
+element.style.cssText = 'color: red; background-color: #f0f0f0;';
+
+// Adding/removing elements
+parentElement.appendChild(newElement);
+parentElement.insertBefore(newElement, referenceElement);
+element.remove(); // Remove element
+parentElement.removeChild(childElement); // Remove child
+
+// Getting element position and size
+const rect = element.getBoundingClientRect(); // Returns object with top, right, bottom, left, width, height
+const offsetTop = element.offsetTop; // Distance from parent
+const offsetLeft = element.offsetLeft;
+const clientWidth = element.clientWidth; // Width including padding
+const clientHeight = element.clientHeight; // Height including padding</code></pre>
+<button class="copy-button absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 rounded px-2 py-1 text-sm">Copy</button>
+<div class="copied-message">Copied!</div>
+</div>
+
+<h3 class="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">Event Handling</h3>
+<div class="code-block">
+<pre><code class="language-javascript">// Adding event listeners
+element.addEventListener('click', function(event) {
+console.log('Element clicked!');
+event.preventDefault(); // Prevent default behavior
+event.stopPropagation(); // Stop event bubbling
+});
+
+// Common events
+// Mouse events: click, dblclick, mousedown, mouseup, mousemove, mouseover, mouseout
+// Keyboard events: keydown, keyup, keypress
+// Form events: submit, change, focus, blur
+// Window events: load, resize, scroll, unload
+
+// Event delegation
+document.getElementById('parent-list').addEventListener('click', function(event) {
+if (event.target.matches('li')) {
+console.log('List item clicked:', event.target.textContent);
+}
+});
+
+// Removing event listeners
+function handleClick(event) {
+console.log('Clicked!');
+}
+element.addEventListener('click', handleClick);
+element.removeEventListener('click', handleClick);
+
+// Custom events
+const customEvent = new CustomEvent('myEvent', {
+detail: { name: 'Custom event data' }
+});
+element.addEventListener('myEvent', function(event) {
+console.log(event.detail.name);
+});
+element.dispatchEvent(customEvent);</code></pre>
+<button class="copy-button absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 rounded px-2 py-1 text-sm">Copy</button>
+<div class="copied-message">Copied!</div>
+</div>
+
+<h3 class="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">Async JavaScript</h3>
+<div class="code-block">
+<pre><code class="language-javascript">// Promises
+const myPromise = new Promise((resolve, reject) => {
+// Async operation
+if (success) {
+resolve('Operation successful');
+} else {
+reject('Operation failed');
+}
+});
+
+myPromise
+.then(result => {
+console.log(result);
+return anotherAsyncOperation();
+})
+.then(newResult => {
+console.log(newResult);
+})
+.catch(error => {
+console.error(error);
+})
+.finally(() => {
+console.log('Promise settled');
+});
+
+// Promise methods
+Promise.all([promise1, promise2, promise3]) // Resolves when all promises resolve
+.then(results => console.log(results));
+
+Promise.race([promise1, promise2]) // Resolves/rejects when first promise settles
+.then(result => console.log(result));
+
+Promise.resolve(value) // Creates resolved promise
+Promise.reject(error) // Creates rejected promise
+
+// Async/Await
+async function fetchData() {
+try {
+const response = await fetch('https://api.example.com/data');
+if (!response.ok) {
+throw new Error('Network response was not ok');
+}
+const data = await response.json();
+return data;
+} catch (error) {
+console.error('Error:', error);
+throw error;
+}
+}
+
+// Using fetch API
+fetch('https://api.example.com/data')
+.then(response => {
+if (!response.ok) {
+throw new Error('Network response was not ok');
+}
+return response.json();
+})
+.then(data => {
+console.log(data);
+})
+.catch(error => {
+console.error('Error:', error);
+});</code></pre>
+<button class="copy-button absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 rounded px-2 py-1 text-sm">Copy</button>
+<div class="copied-message">Copied!</div>
+</div>
+
+<h3 class="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">ES6+ Features</h3>
+<div class="code-block">
+<pre><code class="language-javascript">// Arrow functions
+const add = (a, b) => a + b;
+const multiply = (a, b) => {
+return a * b;
+};
+
+// Template literals
+const name = 'World';
+console.log(`Hello, ${name}!`);
+
+// Destructuring
+const { firstName, lastName } = person;
+const [first, second, ...rest] = array;
+
+// Spread operator
+const newArray = [...array1, ...array2];
+const newObject = { ...obj1, ...obj2 };
+
+// Default parameters
+function greet(name = 'Guest') {
+return `Hello, ${name}!`;
+}
+
+// Rest parameters
+function sum(...numbers) {
+return numbers.reduce((total, num) => total + num, 0);
+}
+
+// Classes
+class Person {
+constructor(name, age) {
+this.name = name;
+this.age = age;
+}
+
+greet() {
+return `Hello, my name is ${this.name}`;
+}
+
+static createAnonymous() {
+return new Person('Anonymous', 0);
+}
+}
+
+class Employee extends Person {
+constructor(name, age, role) {
+super(name, age);
+this.role = role;
+}
+}
+
+// Modules
+// In file utils.js
+export function formatDate(date) {
+// Implementation
+}
+export const PI = 3.14159;
+
+// In another file
+import { formatDate, PI } from './utils.js';
+import * as Utils from './utils.js';</code></pre>
+<button class="copy-button absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 rounded px-2 py-1 text-sm">Copy</button>
+<div class="copied-message">Copied!</div>
+</div>
+</div>
+</section>
+</main>
+
+<footer class="mt-8 p-4 text-center text-gray-500 dark:text-gray-400 text-sm">
+<p>Developer Cheatsheet - A quick reference for common development tasks and code snippets</p>
+</footer>
+</div>
+
+<script>
+// Initialize syntax highlighting
+document.addEventListener('DOMContentLoaded', function() {
+hljs.highlightAll();
+});
+
+// Toggle dark/light mode
+document.getElementById('theme-toggle').addEventListener('click', function() {
+document.body.classList.toggle('dark');
+document.body.classList.toggle('light');
+
+// Change code theme
+const codeTheme = document.getElementById('code-theme');
+if (document.body.classList.contains('dark')) {
+codeTheme.setAttribute('href', 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css');
+} else {
+codeTheme.setAttribute('href', 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-light.min.css');
+}
+});
+
+// Section collapse/expand functionality
+document.querySelectorAll('.section-header').forEach(header => {
+header.addEventListener('click', function() {
+const targetId = this.getAttribute('data-target');
+const content = document.getElementById(targetId);
+content.classList.toggle('show');
+this.querySelector('.toggle-icon').classList.toggle('rotated');
+});
+});
+
+// Jump to section
+document.getElementById('section-jump').addEventListener('change', function() {
+const sectionId = this.value;
+if (sectionId) {
+const section = document.getElementById(sectionId);
+const content = document.getElementById(`${sectionId}-content`);
+if (!content.classList.contains('show')) {
+section.querySelector('.section-header').click();
+}
+section.scrollIntoView({ behavior: 'smooth' });
+}
+});
+
+// Copy code to clipboard
+document.querySelectorAll('.copy-button').forEach(button => {
+button.addEventListener('click', function() {
+const codeBlock = this.previousElementSibling;
+const code = codeBlock.textContent;
+
+navigator.clipboard.writeText(code).then(() => {
+const copiedMessage = this.nextElementSibling;
+copiedMessage.classList.add('show');
+setTimeout(() => {
+copiedMessage.classList.remove('show');
+}, 2000);
+});
+});
+});
+
+// Expand first section by default
+document.querySelector('.section-header').click();
+</script>
+</body>
+</html>

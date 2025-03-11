@@ -9,7 +9,7 @@
   .chat-item:hover,
   .chat-item.active {
     transform: translateY(-2px);
-    background-color: rgba(199, 210, 254, 0.5); /* Adjust the color as needed */
+    background-color: rgba(199, 210, 254, 0.5);
   }
   .unread-badge {
     animation: pulse 2s infinite;
@@ -24,6 +24,23 @@
     100% {
       box-shadow: 0 0 0 0 rgba(79, 70, 229, 0);
     }
+  }
+  /* Improved dropdown positioning */
+  .dropdown-menu {
+    position: absolute;
+    right: 0;
+    z-index: 50;
+    /* For last items, show the dropdown above instead of below */
+    bottom: 100%;
+    margin-bottom: 10px;
+  }
+  
+  /* Override for most items to show below */
+  .dropdown-top .dropdown-menu {
+    bottom: auto;
+    top: 100%;
+    margin-top: 10px;
+    margin-bottom: 0;
   }
 </style>
 {% endblock %}
@@ -49,9 +66,9 @@
     {% if room_data %}
       <div class="grid divide-y divide-gray-100">
         {% for room in room_data %}
-          <a href="{% url 'room' room.id %}" class="block chat-item hover:bg-indigo-50 transition">
+          <div class="block chat-item hover:bg-indigo-50 transition">
             <div class="p-5 flex justify-between items-center gap-4">
-              <div class="flex-1 min-w-0 flex items-start">
+              <a href="{% url 'room' room.id %}" class="flex-1 min-w-0 flex items-start">
                 {% if room.is_group %}
                   <div class="w-14 h-14 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-xl flex items-center justify-center mr-4 flex-shrink-0 shadow-md">
                     <i class="fas fa-users text-white text-xl"></i>
@@ -104,7 +121,7 @@
                     <p class="text-sm text-gray-500 mt-1 italic">Start a conversation</p>
                   {% endif %}
                 </div>
-              </div>
+              </a>
               
               <div class="flex items-center gap-4">
                 {% if room.unread_count > 0 %}
@@ -113,11 +130,11 @@
                   </span>
                 {% endif %}
                 
-                <div class="relative group">
-                  <button class="text-gray-400 hover:text-gray-700 transition p-2 rounded-full hover:bg-gray-100">
+                <div class="relative dropdown-container">
+                  <button class="chat-menu-btn text-gray-400 hover:text-gray-700 transition p-2 rounded-full hover:bg-gray-100">
                     <i class="fas fa-ellipsis-v"></i>
                   </button>
-                  <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-10 hidden group-hover:block">
+                  <div class="dropdown-menu hidden bg-white rounded-lg shadow-lg py-2 w-48">
                     <a href="{% url 'room' room.id %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50">
                       <i class="fas fa-comment-dots mr-2 text-indigo-500"></i> Open chat
                     </a>
@@ -136,7 +153,7 @@
                 </div>
               </div>
             </div>
-          </a>
+          </div>
         {% endfor %}
       </div>
     {% else %}
@@ -157,7 +174,56 @@
 
 {% block extra_js %}
 <script>
-  // Add a subtle hover effect for chat items
+  // Configure dropdown menus based on their position
+  function setupDropdowns() {
+    const containers = document.querySelectorAll('.dropdown-container');
+    const totalContainers = containers.length;
+    
+    containers.forEach((container, index) => {
+      // Make the last few items show their dropdown above instead of below
+      // This prevents dropdowns from being cut off at the bottom of the container
+      if (index >= totalContainers - 2) {
+        // Last two items will show dropdown above
+        container.classList.remove('dropdown-top');
+      } else {
+        // All other items will show dropdown below
+        container.classList.add('dropdown-top');
+      }
+    });
+  }
+  
+  // Run the setup when the page loads
+  document.addEventListener('DOMContentLoaded', setupDropdowns);
+  
+  // Add event listeners to all menu buttons
+  document.querySelectorAll('.chat-menu-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Close all other open dropdowns first
+      document.querySelectorAll('.dropdown-menu').forEach(menu => {
+        if (menu !== this.nextElementSibling) {
+          menu.classList.add('hidden');
+        }
+      });
+      
+      // Toggle the dropdown for this button
+      const dropdown = this.nextElementSibling;
+      dropdown.classList.toggle('hidden');
+    });
+  });
+  
+  // Close all dropdowns when clicking elsewhere
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.chat-menu-btn')) {
+      document.querySelectorAll('.dropdown-menu').forEach(menu => {
+        menu.classList.add('hidden');
+      });
+    }
+  });
+
+  // Add hover effect for chat items
   const chatItems = document.querySelectorAll('.chat-item');
   chatItems.forEach(item => {
     item.addEventListener('mouseenter', () => {
@@ -167,9 +233,6 @@
       if (!item.classList.contains('active')) {
         item.classList.remove('bg-indigo-50');
       }
-    });
-    item.addEventListener('click', () => {
-      item.classList.toggle('active');
     });
   });
 </script>

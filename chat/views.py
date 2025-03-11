@@ -9,7 +9,99 @@ from .forms import CustomUserCreationForm, ContactSearchForm
 from django.shortcuts import get_object_or_404, redirect
 from .forms import ProfileForm
 from .models import Profile
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from .models import Message, Room
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
+@require_POST
+@csrf_exempt
+def upload_file(request, room_id):
+    """Handle file uploads for chat messages"""
+    if not request.user.is_authenticated:
+        return JsonResponse({'status': 'error', 'error': 'Not authenticated'}, status=401)
+
+    # Get room and file info
+    room = get_object_or_404(Room, id=room_id)
+    message_text = request.POST.get('message', '')
+    file = request.FILES.get('file')
+
+    if not file:
+        return JsonResponse({'status': 'error', 'error': 'No file provided'}, status=400)
+
+    try:
+        # Check if user is a participant in the room
+        if request.user not in room.participants.all():
+            return JsonResponse({'status': 'error', 'error': 'Not a participant in this room'}, status=403)
+
+        # Validate file type and size
+        allowed_types = [
+            'image/jpeg', 'image/png', 'image/gif', 
+            'video/mp4', 'video/quicktime', 
+            'application/pdf', 'text/plain',
+            'audio/webm', 'audio/mpeg', 'audio/ogg'
+        ]
+        max_file_size = 50 * 1024 * 1024  # 50 MB
+
+        if file.content_type not in allowed_types:
+            return JsonResponse({'status': 'error', 'error': 'File type not allowed'}, status=400)
+
+        if file.size > max_file_size:
+            return JsonResponse({'status': 'error', 'error': 'File size exceeds limit (50 MB)'}, status=400)
+
+        # Determine message type based on file type
+        if file.content_type.startswith('image'):
+            message_type = 'image'
+        elif file.content_type.startswith('video'):
+            message_type = 'video'
+        elif file.content_type.startswith('audio'):
+            message_type = 'audio'
+        elif file.content_type == 'application/pdf':
+            message_type = 'file'
+        elif file.content_type == 'text/plain':
+            message_type = 'file'
+        else:
+            message_type = 'file'
+
+        # Create message with file
+        message = Message.objects.create(
+            room=room,
+            sender=request.user,
+            content=message_text,
+            message_type=message_type,
+            file=file
+        )
+
+        # Get file URL for the response
+        file_url = message.file.url if message.file else None
+
+        # Broadcast message to channel group
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f'chat_{room_id}',
+            {
+                'type': 'chat_message',
+                'message': message.content,
+                'message_type': message.message_type,
+                'username': message.sender.username,
+                'user_id': message.sender.id,
+                'timestamp': message.timestamp.isoformat(),
+                'file_url': file_url
+            }
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'message_id': message.id,
+            'file_url': file_url
+        })
+
+    except Room.DoesNotExist:
+        return JsonResponse({'status': 'error', 'error': 'Room not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'error': str(e)}, status=500)
 @login_required
 def profile(request):
     profile, created = Profile.objects.get_or_create(user=request.user)
@@ -209,33 +301,3 @@ def create_group(request):
     
     # If not POST or invalid data, redirect to contacts page
     return redirect('contacts')
-
-@csrf_exempt
-@login_required
-def upload_file(request, room_id):
-    if request.method == 'POST':
-        room = get_object_or_404(Room, id=room_id)
-        
-        # Verify user is a participant in the room
-        if request.user not in room.participants.all():
-            return JsonResponse({'error': 'You are not a participant in this room'}, status=403)
-        
-        # Handle file upload
-        if 'file' in request.FILES:
-            file = request.FILES['file']
-            message_type = 'audio' if file.content_type.startswith('audio/') else 'file'
-            
-            # Create message with file
-            message = Message.objects.create(
-                room=room,
-                sender=request.user,
-                file=file,
-                message_type=message_type
-            )
-            
-            return JsonResponse({
-                'file_url': message.file.url,
-                'message_id': message.id
-            })
-            
-    return JsonResponse({'error': 'Invalid request'}, status=400)

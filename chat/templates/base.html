@@ -33,11 +33,23 @@
         .nav-item.active::after {
             width: 100%;
         }
+        
+        /* Smooth transitions for mobile menu */
+        #mobileMenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            opacity: 0;
+        }
+        #mobileMenu.show {
+            max-height: 500px;
+            opacity: 1;
+        }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
-    <nav class="bg-gradient-to-r from-indigo-600 to-purple-700 text-white shadow-lg">
+    <nav class="bg-gradient-to-r from-indigo-600 to-purple-700 text-white shadow-lg sticky top-0 z-40">
         <div class="container mx-auto px-4 py-4">
             <div class="flex justify-between items-center">
                 <a href="{% url 'index' %}" class="text-2xl font-bold hover:text-white transition duration-200 flex items-center">
@@ -87,9 +99,9 @@
                     </ul>
                 </div>
             </div>
-            <!-- Mobile menu, hidden by default -->
-            <div id="mobileMenu" class="md:hidden hidden mt-4 pb-2 bg-white/10 rounded-lg p-4">
-                <ul class="space-y-4">
+            <!-- Mobile menu -->
+            <div id="mobileMenu" class="md:hidden mt-4 bg-white/10 rounded-lg">
+                <ul class="space-y-4 p-4">
                     {% if user.is_authenticated %}
                     <li>
                         <a href="{% url 'profile' %}" class="block hover:translate-x-2 transition duration-200 {% if request.resolver_match.url_name == 'profile' %}font-semibold{% endif %}">
@@ -150,20 +162,10 @@
     </footer>
 
     <script>
-        // Mobile menu toggle with animation
+        // Improved mobile menu toggle with smooth transitions
         document.getElementById('menuToggle').addEventListener('click', function() {
             const mobileMenu = document.getElementById('mobileMenu');
-            if (mobileMenu.classList.contains('hidden')) {
-                mobileMenu.classList.remove('hidden');
-                setTimeout(() => {
-                    mobileMenu.style.opacity = '1';
-                }, 10);
-            } else {
-                mobileMenu.style.opacity = '0';
-                setTimeout(() => {
-                    mobileMenu.classList.add('hidden');
-                }, 300);
-            }
+            mobileMenu.classList.toggle('show');
         });
     </script>
     {% block extra_js %}{% endblock %}
