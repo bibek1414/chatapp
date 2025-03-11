@@ -14,7 +14,32 @@
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="id_profile_picture">
                         Profile Picture
                     </label>
-                    {{ form.profile_picture }}
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <img class="h-16 w-16 rounded-full object-cover" src="{{ user.profile.profile_picture.url }}" alt="{{ user.username }}">
+                        </div>
+                        <div class="flex-1">
+                            {{ form.profile_picture }}
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="id_first_name">
+                        First Name
+                    </label>
+                    <input type="text" name="first_name" id="id_first_name" value="{{ user.first_name }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="id_last_name">
+                        Last Name
+                    </label>
+                    <input type="text" name="last_name" id="id_last_name" value="{{ user.last_name }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="id_username">
+                        Username
+                    </label>
+                    <input type="text" name="username" id="id_username" value="{{ user.username }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 </div>
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="id_bio">

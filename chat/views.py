@@ -109,6 +109,12 @@ def profile(request):
     if request.method == 'POST':
         form = ProfileForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():
+            # Update the user's first name, last name, and username
+            user = request.user
+            user.first_name = request.POST.get('first_name', user.first_name)
+            user.last_name = request.POST.get('last_name', user.last_name)
+            user.username = request.POST.get('username', user.username)
+            user.save()
             form.save()
             return redirect('profile')
     else:
