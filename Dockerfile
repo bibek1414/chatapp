@@ -14,7 +14,7 @@ COPY . .
 # Expose the application port
 EXPOSE 8000
 
-# Add entrypoint script to handle migrations and collectstatic
+# Add entrypoint script
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 

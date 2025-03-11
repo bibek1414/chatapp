@@ -6,5 +6,5 @@ python manage.py migrate --noinput
 # Collect static files
 python manage.py collectstatic --noinput
 
-# Start the application using gunicorn
-exec gunicorn chat_project.wsgi:application --bind 0.0.0.0:8000
+# Start the application using daphne (ASGI server that supports WebSockets)
+exec daphne -b 0.0.0.0 -p 8000 chat_project.asgi:application
