@@ -107,3 +107,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = 'index'
 LOGOUT_REDIRECT_URL = 'login'
+
+CORS_ALLOW_ALL_ORIGINS = True  # For development only
+CSRF_TRUSTED_ORIGINS = ['https://chatapp-cuvv.onrender.com']
