@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
-
+from dotenv import load_dotenv
+load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-replace-with-your-secure-key'
@@ -54,16 +55,16 @@ TEMPLATES = [
         },
     },
 ]
-
 WSGI_APPLICATION = 'chat_project.wsgi.application'
 ASGI_APPLICATION = 'chat_project.asgi.application'
 
+REDIS_URL = os.getenv("REDIS_URL")
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
             # "hosts": [('127.0.0.1', 6379,)],
-            "hosts": ['redis://red-cp2v7t0cmk4c73b1n1q0:6379'], 
+            "hosts": [REDIS_URL], 
         },
     },
 }
