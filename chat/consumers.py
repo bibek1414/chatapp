@@ -100,3 +100,24 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 message_type=message_type
             )
         return message
+    class NotificationConsumer(AsyncWebsocketConsumer):
+        async def connect(self):
+            self.user = self.scope["user"]
+            await self.channel_layer.group_add(
+                f"user_{self.user.id}_notifications",
+                self.channel_name
+            )
+            await self.accept()
+
+        async def disconnect(self, close_code):
+            await self.channel_layer.group_discard(
+                f"user_{self.user.id}_notifications",
+                self.channel_name
+            )
+
+        async def receive(self, text_data):
+            pass  # Handle any messages sent from the client
+
+        async def notification_message(self, event):
+            # Send notification to WebSocket
+            await self.send(text_data=json.dumps(event))

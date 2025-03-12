@@ -52,12 +52,70 @@
     text-overflow: ellipsis;
     max-width: 150px;
   }
+  
+  /* New styles for scroll button */
+  .scroll-bottom-btn {
+    position: absolute;
+    right: 15px;
+    bottom: 70px;
+    width: 40px;
+    height: 40px;
+    background: rgba(79, 70, 229, 0.8);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: all 0.2s ease;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  .scroll-bottom-btn.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .scroll-bottom-btn:hover {
+    background: rgba(79, 70, 229, 1);
+  }
+  
+  /* Call animation styles */
+  @keyframes ringing {
+    0% { transform: rotate(-10deg); }
+    50% { transform: rotate(10deg); }
+    100% { transform: rotate(-10deg); }
+  }
+  .ringing {
+    animation: ringing 0.5s infinite;
+    color: #ef4444 !important;
+  }
+  /* Incoming Call Modal */
+#incoming-call-modal {
+  z-index: 1000;
+}
+
+/* Call Window */
+#call-window {
+  z-index: 999;
+  transition: all 0.3s ease;
+}
+
+/* Buttons */
+#accept-call-btn, #decline-call-btn {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="max-w-4xl mx-auto">
-  <div class="bg-white rounded-xl shadow-md overflow-hidden">
+  <div class="bg-white rounded-xl shadow-md overflow-hidden relative">
     <!-- Chat Header -->
     <div class="bg-indigo-50 p-4 border-b border-gray-200 flex justify-between items-center">
       <div class="flex items-center">
@@ -153,6 +211,11 @@
         </div>
       {% endfor %}
     </div>
+    
+    <!-- Scroll to Bottom Button -->
+    <div id="scroll-bottom-btn" class="scroll-bottom-btn">
+      <i class="fas fa-arrow-down"></i>
+    </div>
 
     <!-- Message Input -->
     <div class="p-4 bg-white border-t border-gray-200">
@@ -218,10 +281,31 @@
     <video id="remoteVideo" autoplay class="w-full h-32 rounded-lg mt-2"></video>
     <button id="endCallBtn" class="mt-2 w-full bg-red-500 text-white py-1 rounded-lg">End Call</button>
 </div>
+<!-- Incoming Call Modal -->
+<div id="incoming-call-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm text-center">
+    <h3 class="text-xl font-semibold mb-2">Incoming Call</h3>
+    <p class="text-gray-600 mb-4">From <span id="caller-username">Username</span></p>
+    <div class="flex justify-center space-x-4">
+      <button id="accept-call-btn" class="p-3 bg-green-500 text-white rounded-full hover:bg-green-600 transition">
+        <i class="fas fa-phone"></i>
+      </button>
+      <button id="decline-call-btn" class="p-3 bg-red-500 text-white rounded-full hover:bg-red-600 transition">
+        <i class="fas fa-phone-slash"></i>
+      </button>
+    </div>
+  </div>
+</div>
 <!-- Audio notification element -->
 <audio id="notification-sound" preload="auto">
   <source src="{% static 'sounds/notification.mp3' %}" type="audio/mpeg">
   <source src="{% static 'sounds/notification.ogg' %}" type="audio/ogg">
+</audio>
+
+<!-- Call ringtone -->
+<audio id="call-ringtone" loop preload="auto">
+  <source src="{% static 'sounds/ringtone.mp3' %}" type="audio/mpeg">
+  <source src="{% static 'sounds/ringtone.ogg' %}" type="audio/ogg">
 </audio>
 
 {% block extra_js %}
@@ -230,6 +314,7 @@
   const currentUserId = {{ request.user.id }};
   const currentUsername = "{{ request.user.username }}";
   const notificationSound = document.getElementById('notification-sound');
+  const callRingtone = document.getElementById('call-ringtone');
   let lastMessageId = null;
   // Determine the protocol based on the current page protocol
   const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
@@ -245,9 +330,73 @@
   const fileInput = document.getElementById('file-input');
   const previewContainer = document.getElementById('preview-container');
   const messageForm = document.getElementById('message-form');
+  const scrollBottomBtn = document.getElementById('scroll-bottom-btn');
   
   let selectedFile = null;
+  let isAtBottom = true;
+  document.getElementById('accept-call-btn').addEventListener('click', async () => {
+    // Hide the incoming call modal
+    document.getElementById('incoming-call-modal').classList.add('hidden');
+    stopCallRingtone();
   
+    // Show the call window
+    callWindow.classList.remove('hidden');
+  
+    // Get user media
+    try {
+      localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      localVideo.srcObject = localStream;
+  
+      // Create peer connection
+      peerConnection = new RTCPeerConnection(configuration);
+  
+      // Add local tracks
+      localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+  
+      // Handle remote tracks
+      peerConnection.ontrack = event => {
+        remoteVideo.srcObject = event.streams[0];
+      };
+  
+      // Handle ICE candidates
+      peerConnection.onicecandidate = event => {
+        if (event.candidate) {
+          chatSocket.send(JSON.stringify({
+            type: 'candidate',
+            content: event.candidate
+          }));
+        }
+      };
+  
+      // Set remote description from the incoming offer
+      await peerConnection.setRemoteDescription(new RTCSessionDescription(incomingOffer));
+  
+      // Create and send an answer
+      const answer = await peerConnection.createAnswer();
+      await peerConnection.setLocalDescription(answer);
+  
+      chatSocket.send(JSON.stringify({
+        type: 'answer',
+        content: answer,
+        to: callerId // Send the answer to the caller
+      }));
+    } catch (error) {
+      console.error('Error accepting call:', error);
+      alert('Failed to start the call. Please try again.');
+      endCall();
+    }
+  });
+  document.getElementById('decline-call-btn').addEventListener('click', () => {
+    // Hide the incoming call modal
+    document.getElementById('incoming-call-modal').classList.add('hidden');
+    stopCallRingtone();
+  
+    // Notify the caller that the call was declined
+    chatSocket.send(JSON.stringify({
+      type: 'end_call',
+      to: callerId
+    }));
+  });
   // Add a message to the UI
   function addMessage(message, messageType, username, userId, timestamp, fileUrl = null) {
     const isCurrentUser = userId == currentUserId;
@@ -364,14 +513,79 @@
       messageBubble.style.transform = 'translateY(0)';
     }, 10);
     
-    // Scroll to bottom if needed
-    scrollToBottom();
+    // Check if we should scroll to bottom
+    const wasAtBottom = isAtBottom;
+    
+    // Play notification sound for incoming messages
+    if (userId !== currentUserId && data.id !== lastMessageId) {
+      playNotificationSound();
+      lastMessageId = data.id;
+    }
+    
+    // Scroll to bottom only if we were already at the bottom
+    if (wasAtBottom) {
+      scrollToBottom();
+    } else {
+      // Show the scroll button
+      scrollBottomBtn.classList.add('visible');
+    }
+  }
+  
+  // Play notification sound
+  function playNotificationSound() {
+    if (notificationSound) {
+      notificationSound.currentTime = 0;
+      notificationSound.play().catch(e => {
+        console.log("Audio playback failed:", e);
+      });
+    }
+  }
+  
+  // Play call ringtone
+  function playCallRingtone() {
+    if (callRingtone) {
+      callRingtone.currentTime = 0;
+      callRingtone.play().catch(e => {
+        console.log("Ringtone playback failed:", e);
+      });
+    }
+  }
+  
+  // Stop call ringtone
+  function stopCallRingtone() {
+    if (callRingtone) {
+      callRingtone.pause();
+      callRingtone.currentTime = 0;
+    }
   }
   
   // Scroll to bottom of message container
   function scrollToBottom() {
     messageContainer.scrollTop = messageContainer.scrollHeight;
+    scrollBottomBtn.classList.remove('visible');
+    isAtBottom = true;
   }
+  
+  // Check if scroll is at bottom
+  function checkScrollPosition() {
+    const scrollPosition = messageContainer.scrollTop + messageContainer.clientHeight;
+    const scrollHeight = messageContainer.scrollHeight;
+    
+    // Consider "at bottom" if within 50px of the bottom
+    isAtBottom = scrollHeight - scrollPosition < 50;
+    
+    if (isAtBottom) {
+      scrollBottomBtn.classList.remove('visible');
+    } else {
+      scrollBottomBtn.classList.add('visible');
+    }
+  }
+  
+  // Add scroll event listener to message container
+  messageContainer.addEventListener('scroll', checkScrollPosition);
+  
+  // Add click event listener to scroll button
+  scrollBottomBtn.addEventListener('click', scrollToBottom);
   
   // Handle file input change
   fileInput.addEventListener('change', function(e) {
@@ -478,71 +692,70 @@
   }
   
   // Handle form submission
- // Handle form submission
-messageForm.addEventListener('submit', function(e) {
-  e.preventDefault();
-  
-  const message = messageInput.value.trim();
-  
-  if (selectedFile) {
-      // Handle file upload through AJAX
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-      formData.append('room_id', roomId);
-      formData.append('message', message);
-      
-      // Determine message type based on file type
-      const fileType = selectedFile.type.split('/')[0];
-      let messageType = 'file';
-      
-      if (fileType === 'image') {
-          messageType = 'image';
-      } else if (fileType === 'video') {
-          messageType = 'video';
-      } else if (fileType === 'audio') {
-          messageType = 'audio';
-      }
-      
-      formData.append('message_type', messageType);
-      
-      // Send file to server
-      fetch('/upload_file/' + roomId + '/', {
-          method: 'POST',
-          body: formData,
-          headers: {
-              'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-          }
-      })
-      .then(response => response.json())
-      .then(data => {
-          if (data.status === 'success') {
-              // Clear form and preview
-              messageInput.value = '';
-              previewContainer.innerHTML = '';
-              previewContainer.classList.add('hidden');
-              fileInput.value = '';
-              selectedFile = null;
-              
-              // Server will handle broadcasting the message via WebSocket
-          } else {
-              alert('Error uploading file: ' + data.error);
-          }
-      })
-      .catch(error => {
-          console.error('Error:', error);
-          alert('Failed to upload file. Please try again.');
-      });
-  } else if (message) {
-      // Text-only message
-      chatSocket.send(JSON.stringify({
-          'message': message,
-          'type': 'text'
-      }));
-      messageInput.value = '';
-  }
-  
-  messageInput.focus();
-});
+  messageForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const message = messageInput.value.trim();
+    
+    if (selectedFile) {
+        // Handle file upload through AJAX
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        formData.append('room_id', roomId);
+        formData.append('message', message);
+        
+        // Determine message type based on file type
+        const fileType = selectedFile.type.split('/')[0];
+        let messageType = 'file';
+        
+        if (fileType === 'image') {
+            messageType = 'image';
+        } else if (fileType === 'video') {
+            messageType = 'video';
+        } else if (fileType === 'audio') {
+            messageType = 'audio';
+        }
+        
+        formData.append('message_type', messageType);
+        
+        // Send file to server
+        fetch('/upload_file/' + roomId + '/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Clear form and preview
+                messageInput.value = '';
+                previewContainer.innerHTML = '';
+                previewContainer.classList.add('hidden');
+                fileInput.value = '';
+                selectedFile = null;
+                
+                // Server will handle broadcasting the message via WebSocket
+            } else {
+                alert('Error uploading file: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to upload file. Please try again.');
+        });
+    } else if (message) {
+        // Text-only message
+        chatSocket.send(JSON.stringify({
+            'message': message,
+            'type': 'text'
+        }));
+        messageInput.value = '';
+    }
+    
+    messageInput.focus();
+  });
   
   // Event listeners
   messageInput.addEventListener('keypress', function(e) {
@@ -552,59 +765,48 @@ messageForm.addEventListener('submit', function(e) {
     }
   });
   
-  // WebSocket event listeners
-  chatSocket.onmessage = function(e) {
+  chatSocket.onmessage = function (e) {
     const data = JSON.parse(e.data);
-    
-    // Handle different message types from the WebSocket
-    if (data.type === 'offer' || data.type === 'answer' || data.type === 'candidate' || data.type === 'end_call') {
-      handleWebRTCMessage(data);
+  
+    if (data.type === 'offer') {
+      // Show incoming call modal
+      document.getElementById('caller-username').textContent = data.username;
+      document.getElementById('incoming-call-modal').classList.remove('hidden');
+  
+      // Play ringtone
+      playCallRingtone();
+  
+      // Store the offer for later use
+      incomingOffer = data.content;
+      callerId = data.user_id;
+    } else if (data.type === 'answer') {
+      // Handle answer from the remote peer
+      peerConnection.setRemoteDescription(new RTCSessionDescription(data.content))
+        .catch(error => {
+          console.error('Error setting remote description:', error);
+        });
+    } else if (data.type === 'candidate') {
+      // Add ICE candidate
+      if (peerConnection) {
+        peerConnection.addIceCandidate(new RTCIceCandidate(data.content))
+          .catch(error => {
+            console.error('Error adding ICE candidate:', error);
+          });
+      }
+    } else if (data.type === 'end_call') {
+      // Handle call end
+      endCall();
     } else {
-      // Regular chat message
-      addMessage(
-        data.message, 
-        data.message_type, 
-        data.username, 
-        data.user_id, 
-        data.timestamp,
-        data.file_url
-      );
+      // Handle chat messages
+      addMessage(data.message, data.message_type, data.username, data.user_id, data.timestamp, data.file_url);
+      
+      // Play notification sound for new messages
       if (data.user_id !== currentUserId && data.id !== lastMessageId) {
         playNotificationSound();
         lastMessageId = data.id;
       }
     }
   };
-  function playNotificationSound() {
-    if (notificationSound) {
-      notificationSound.currentTime = 0;
-      notificationSound.play().catch(e => {
-        console.log("Audio playback failed:", e);
-      });
-    }
-  }
-  // Check for new messages periodically
-  let previousUnreadCount = document.querySelectorAll('.unread-badge').length;
-  
-  function checkForNewMessages() {
-    const currentUnreadCount = document.querySelectorAll('.unread-badge').length;
-    
-    if (currentUnreadCount > previousUnreadCount && !document.hidden) {
-      playNotificationSound();
-    }
-    
-    previousUnreadCount = currentUnreadCount;
-  }
-  
-  // Poll for new messages every 10 seconds
-  setInterval(checkForNewMessages, 10);
-  
-  // Also check when tab becomes visible again
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) {
-      checkForNewMessages();
-    }
-  });
   chatSocket.onopen = function(e) {
     connectionStatus.innerHTML = '<p class="text-xs text-green-500 flex items-center justify-center"><span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span> Connected</p>';
   };
@@ -785,24 +987,21 @@ messageForm.addEventListener('submit', function(e) {
   }
   
   function endCall() {
-    // Close the peer connection
     if (peerConnection) {
       peerConnection.close();
       peerConnection = null;
     }
-    
-    // Stop all media tracks
+  
     if (localStream) {
       localStream.getTracks().forEach(track => track.stop());
       localStream = null;
     }
-    
-    // Clear video elements
+  
     localVideo.srcObject = null;
     remoteVideo.srcObject = null;
-    
-    // Hide call window
     callWindow.classList.add('hidden');
+    document.getElementById('incoming-call-modal').classList.add('hidden');
+    stopCallRingtone();
   }
   
   // Event listeners for call buttons
